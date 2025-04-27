@@ -15,11 +15,11 @@ export async function POST(request: Request) {
 
     // Retorna os dados do webhook
     return NextResponse.json(response.data);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Erro no proxy:', error);
     return NextResponse.json(
-      { error: error.message || 'Erro interno do servidor' },
-      { status: error.response?.status || 500 }
+      { error: error instanceof Error ? error.message : 'Erro interno do servidor' },
+      { status: (error as { response?: { status: number } }).response?.status || 500 }
     );
   }
 }

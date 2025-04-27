@@ -6,7 +6,7 @@ import { HiLightBulb, HiUsers, HiBookOpen, HiPencil } from 'react-icons/hi';
 import { Tooltip } from 'react-tooltip';
 
 interface FormProps {
-  onSuccess: (data: any) => void;
+  onSuccess: (data: void) => void;
   onError: (message: string) => void;
   onLoading: (isLoading: boolean) => void;
 }
@@ -46,8 +46,8 @@ const EbookForm: React.FC<FormProps> = ({ onSuccess, onError, onLoading }) => {
       const data = { tema, publicoAlvo, numCapitulos, estiloEscrita };
       const result = await generateEbook(data);
       onSuccess(result);
-    } catch (error: any) {
-      onError(error.message || 'Ocorreu um erro desconhecido.');
+    } catch (error: unknown) {
+      onError(error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.');
     } finally {
       onLoading(false);
       setIsSubmitting(false);

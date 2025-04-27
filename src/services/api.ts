@@ -12,11 +12,11 @@ export const generateEbook = async (data: EbookData) => {
     // Chama nossa API route proxy em vez do webhook diretamente
     const response = await axios.post('/api/generate-proxy', data);
     return response.data;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Erro ao gerar e-book:', error);
-    if (error.response?.data?.error) {
+    if ((error as { response?: { data?: { error?: string } } }).response?.data?.error) {
       // Se o proxy retornou uma mensagem de erro específica
-      throw new Error(error.response.data.error);
+      throw new Error((error as { response?: { data?: { error?: string } } }).response?.data?.error || '');
     }
     throw new Error('Falha ao gerar o e-book. Tente novamente.');
   }

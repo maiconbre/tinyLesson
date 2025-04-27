@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { MiniCourse } from '@/hooks/useMiniCourse';
+import { MiniCourse, Module, Lesson, QuizQuestion, GlossaryItem } from '@/hooks/useMiniCourse';
 
 const WEBHOOK_URL = 'https://n8n.targetweb.tech/webhook/f3cdcfd1-71d8-46fb-b6cd-c855cdd8e1db';
 
@@ -12,8 +12,8 @@ const extractJsonFromMarkdown = (text: string): string => {
     if (directParse?.output) {
       text = directParse.output;
     }
-  } catch (e) {
-    console.log('Parse direto falhou, continuando com extração do markdown');
+  } catch {
+    
   }
 
   // Procura por blocos de código JSON (tolerante a espaços, quebras de linha e ausência de linguagem)
@@ -69,12 +69,12 @@ const extractJsonFromMarkdown = (text: string): string => {
     console.log('JSON é válido, contém campos:', Object.keys(parsed));
     // Verifica e corrige estrutura dos módulos
     if (parsed.modules) {
-      parsed.modules = parsed.modules.map((module: any) => {
+      parsed.modules = parsed.modules.map((module: Partial<Module>) => {
         module.module_title = module.module_title || '';
         module.introduction = module.introduction || '';
         module.lessons = Array.isArray(module.lessons) ? module.lessons : [];
         module.quiz = Array.isArray(module.quiz) ? module.quiz : [];
-        module.quiz = module.quiz.map((q: any) => ({
+        module.quiz = module.quiz.map((q: Partial<QuizQuestion>) => ({
           question: String(q?.question || ''),
           options: Array.isArray(q?.options) ? q.options.map(String) : [],
           answer: String(q?.answer || ''),
@@ -91,7 +91,7 @@ const extractJsonFromMarkdown = (text: string): string => {
   }
 };
 
-const validateResponse = (data: any): MiniCourse => {
+const validateResponse = (data: Record<string, unknown>): MiniCourse => {
   console.log('Validando estrutura da resposta:', JSON.stringify(data, null, 2));
 
   if (!data) {
@@ -105,9 +105,9 @@ const validateResponse = (data: any): MiniCourse => {
 
   // Lista de campos obrigatórios e seus tipos esperados
   const validation = {
-    title: (v: any) => typeof v === 'string',
-    objectives: (v: any) => Array.isArray(v) && v.every(item => typeof item === 'string'),
-    modules: (v: any) => Array.isArray(v) && v.every(module => (
+    title: (v: unknown) => typeof v === 'string',
+    objectives: (v: unknown) => Array.isArray(v) && v.every(item => typeof item === 'string'),
+    modules: (v: unknown) => Array.isArray(v) && v.every((module: Partial<Module>) => (
       typeof module.module_title === 'string' &&
       typeof module.introduction === 'string' &&
       Array.isArray(module.lessons) &&
@@ -120,12 +120,12 @@ const validateResponse = (data: any): MiniCourse => {
         typeof q.explanation === 'string'
       )
     )),
-    glossary: (v: any) => Array.isArray(v) && v.every(item => (
+    glossary: (v: unknown) => Array.isArray(v) && v.every((item: Partial<GlossaryItem>) => (
       typeof item.term === 'string' &&
       typeof item.definition === 'string'
     )),
-    study_tips: (v: any) => Array.isArray(v) && v.every(item => typeof item === 'string'),
-    final_summary: (v: any) => typeof v === 'string'
+    study_tips: (v: unknown) => Array.isArray(v) && v.every(item => typeof item === 'string'),
+    final_summary: (v: unknown) => typeof v === 'string'
   };
 
   // Verifica cada campo
@@ -146,7 +146,8 @@ const validateResponse = (data: any): MiniCourse => {
     console.log(`Campo "${field}" validado com sucesso`);
   }
 
-  return data as MiniCourse;
+  // First cast to unknown, then to MiniCourse to avoid direct type assertion error
+  return (data as unknown) as MiniCourse;
 };
 
 const callWebhook = async (theme: string) => {
@@ -220,7 +221,7 @@ const callWebhook = async (theme: string) => {
 
       // Sanitiza os dados antes da validação
       console.log('Dados antes da sanitização:', data);
-      const sanitizeData = (data: any) => {
+      const sanitizeData = (data: Record<string, unknown>) => {
         console.log('Iniciando sanitização dos dados');
         
         // Garante que os campos base existam
@@ -234,20 +235,20 @@ const callWebhook = async (theme: string) => {
         };
 
         // Valida campos obrigatórios
-        if (!data.title.trim()) {
+        if (typeof data.title !== 'string' || !data.title.trim()) {
           throw new Error('Campo title é obrigatório');
         }
 
         // Normaliza os módulos
-        data.modules = data.modules.map((module: any, index: number) => {
-          console.log(`Sanitizando módulo ${index + 1}/${data.modules.length}`);
+        data.modules = (data.modules as Array<Partial<Module>>).map((module: Partial<Module>, index: number) => {
+          console.log(`Sanitizando módulo ${index + 1}/${(data.modules as Array<unknown>).length}`);
           console.log(`Módulo ${index + 1}: ${module?.module_title || 'Sem título'}`);
           
           // Normaliza campos do módulo
           const normalizedModule = {
             module_title: String(module?.module_title || ''),
             introduction: String(module?.introduction || ''),
-            lessons: Array.isArray(module?.lessons) ? module.lessons.map((lesson: any) => ({
+            lessons: Array.isArray(module?.lessons) ? module.lessons.map((lesson: Partial<Lesson>) => ({
               lesson_title: String(lesson?.lesson_title || ''),
               content: String(lesson?.content || ''),
               example: String(lesson?.example || '')
@@ -256,9 +257,9 @@ const callWebhook = async (theme: string) => {
           };
 
           // Normaliza o quiz
-          normalizedModule.quiz = normalizedModule.quiz.map((q: any, qIndex: number) => {
+          normalizedModule.quiz = normalizedModule.quiz.map((q: Partial<QuizQuestion>, qIndex: number) => {
             const options = Array.isArray(q?.options) 
-              ? q.options.map((opt: any, i: number) => {
+              ? q.options.map((opt: unknown, i: number) => {
                   const option = String(opt).trim();
                   // Garante que a opção está no formato correto (A), B), etc)
                   if (!option.startsWith(String.fromCharCode(65 + i) + ')')) {
@@ -289,7 +290,7 @@ const callWebhook = async (theme: string) => {
         });
 
         // Normaliza o glossário
-        data.glossary = data.glossary.map((item: any) => ({
+        data.glossary = (data.glossary as Array<Partial<GlossaryItem>>).map((item: Partial<GlossaryItem>) => ({
           term: String(item?.term || ''),
           definition: String(item?.definition || '')
         }));
@@ -303,12 +304,12 @@ const callWebhook = async (theme: string) => {
       console.log('JSON parseado com sucesso');
       console.log('Estatísticas do curso:');
       console.log(`- Título: ${data.title}`);
-      console.log(`- Objetivos: ${data.objectives.length}`);
-      console.log(`- Módulos: ${data.modules.length}`);
-      console.log(`- Total de lições: ${data.modules.reduce((acc: number, m: { lessons: any[] }) => acc + m.lessons.length, 0)}`);
-      console.log(`- Total de questões: ${data.modules.reduce((acc: number, m: { quiz: any[] }) => acc + m.quiz.length, 0)}`);
-      console.log(`- Termos no glossário: ${data.glossary.length}`);
-      console.log(`- Dicas de estudo: ${data.study_tips.length}`);
+      console.log(`- Objetivos: ${Array.isArray(data.objectives) ? data.objectives.length : 0}`);
+      console.log(`- Módulos: ${Array.isArray(data.modules) ? data.modules.length : 0}`);
+      console.log(`- Total de lições: ${(data.modules as Module[]).reduce((acc: number, m: { lessons: Lesson[] }) => acc + m.lessons.length, 0)}`);
+      console.log(`- Total de questões: ${(data.modules as Module[]).reduce((acc: number, m: { quiz: QuizQuestion[] }) => acc + m.quiz.length, 0)}`);
+      console.log(`- Termos no glossário: ${Array.isArray(data.glossary) ? data.glossary.length : 0}`);
+      console.log(`- Dicas de estudo: ${Array.isArray(data.study_tips) ? data.study_tips.length : 0}`);
       return validateResponse(data);
     } catch (parseError) {
       console.error('Erro ao parsear JSON:', parseError);

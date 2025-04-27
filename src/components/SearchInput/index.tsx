@@ -16,7 +16,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
   onSubmit,
   loading = false,
 }) => {
-  const [isFocused, setIsFocused] = useState(false);
+  const [, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const history = useCourseStore(state => state.history);
   const [showSuggestions, setShowSuggestions] = useState(false);
