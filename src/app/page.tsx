@@ -9,8 +9,6 @@ import { Rating } from '@/components/Rating';
 import { SearchInput } from '@/components/SearchInput';
 import { useCourseStore } from '@/store/useCourseStore';
 
-// Adiciona breakpoint personalizado para telas muito pequenas
-// xs: min-width: 320px
 
 export default function Home() {
   const [theme, setTheme] = useState('');
@@ -30,21 +28,21 @@ export default function Home() {
 
       <div className="relative z-10">
         {/* Header */}
-        <header className="pt-12 sm:pt-16 md:pt-20 pb-10 sm:pb-16 px-4 sm:px-6">
+        <header className="pt-8 sm:pt-16 md:pt-20 pb-6 sm:pb-16 px-2 sm:px-6">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="max-w-4xl mx-auto text-center"
+            className="max-w-full sm:max-w-4xl mx-auto text-center"
           >
             <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold text-gold-400 mb-4 sm:mb-6">
                Mini Curso Gen.
             </h1>
             <p className="text-base sm:text-xl text-foreground/80">
-              Gere um pequeno curso resumo sobre qualquer tema em segundos.
+              Gere um pequeno curso sobre qualquer tema em segundos.
               <br className="hidden sm:block" />
-              Perfeito para revisão rápida para quem não estudou para prova.
+              Compreenda qualquer tema em menos de 30 minutos de estudos.
+              <br className="hidden sm:block" />
+              Perfeito para revisão rápida.
             </p>
+            
           </motion.div>
         </header>
 
@@ -121,9 +119,9 @@ export default function Home() {
               {/* Glossário */}
               <div className="bg-background/50 rounded-lg p-4 sm:p-6 backdrop-blur-sm">
                 <h3 className="text-lg sm:text-xl font-semibold text-gold-400 mb-3 sm:mb-4">Glossário</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-foreground/70">
+                <div className="grid grid-cols-1 gap-2 sm:gap-4 sm:grid-cols-2 text-foreground/70">
                   {data.glossary.map((item, index) => (
-                    <div key={index} className="bg-background/30 p-3 sm:p-4 rounded-lg">
+                    <div key={index} className="bg-background/30 p-2 sm:p-4 rounded-lg">
                       <h4 className="font-medium text-foreground mb-2">{item.term}</h4>
                       <p>{item.definition}</p>
                     </div>
@@ -157,8 +155,7 @@ export default function Home() {
                   <PdfButton courseData={data} />
                   <button
                     onClick={() => setShowRating(true)}
-                    className="px-3 sm:px-4 py-2 bg-gold-600 text-dark-900 rounded-lg hover:bg-gold-500
-                             transition-all duration-200 text-sm sm:text-base"
+                    className="px-2 sm:px-4 py-1.5 bg-gold-600 text-dark-900 rounded-lg hover:bg-gold-500 text-xs sm:text-base"
                   >
                     Avaliar Curso
                   </button>
