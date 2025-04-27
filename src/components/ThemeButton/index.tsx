@@ -8,7 +8,7 @@ export const ThemeButton: React.FC = () => {
   return (
     <motion.button
       onClick={toggleTheme}
-      className={`fixed top-4 right-4 p-3 rounded-full 
+      className={`fixed top-3 right-4 p-2 rounded-full 
                  ${theme === 'dark' 
                    ? 'bg-gold-600 text-dark-900' 
                    : 'bg-dark-800 text-gold-400'}
@@ -19,9 +19,9 @@ export const ThemeButton: React.FC = () => {
       animate={{ opacity: 1, y: 0 }}
     >
       {theme === 'dark' ? (
-        <SunIcon className="w-6 h-6" />
+        <SunIcon className="w-5 h-5" />
       ) : (
-        <MoonIcon className="w-6 h-6" />
+        <MoonIcon className="w-5 h-5" />
       )}
     </motion.button>
   );
