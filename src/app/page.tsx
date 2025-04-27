@@ -38,7 +38,7 @@ export default function Home() {
             className="max-w-4xl mx-auto text-center"
           >
             <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold text-gold-400 mb-4 sm:mb-6">
-              Mini Curso 
+               Mini Curso Gen.
             </h1>
             <p className="text-base sm:text-xl text-foreground/80">
               Gere um pequeno curso resumo sobre qualquer tema em segundos.
