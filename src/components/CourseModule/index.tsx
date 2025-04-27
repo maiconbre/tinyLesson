@@ -108,7 +108,7 @@ export const CourseModule: React.FC<CourseModuleProps> = ({
                       <h5 className="font-medium text-foreground text-lg hover:text-gold-400 transition-colors">{lesson.lesson_title}</h5>
                       <button
                         onClick={() => onLessonComplete(lessonIndex)}
-                        className={`flex items-center space-x-2 px-4 py-2 rounded-full text-sm
+                        className={`flex items-center space-x-2 px-2 py-2 rounded-full text-sm
                                   transition-all duration-300 hover:bg-opacity-80
                                   ${
                                     completedLessons.has(`${index}-${lessonIndex}`)
@@ -116,7 +116,7 @@ export const CourseModule: React.FC<CourseModuleProps> = ({
                                       : 'bg-dark-700 text-gold-300 hover:bg-dark-600 dark:bg-dark-700 dark:text-gold-300 dark:hover:bg-dark-600'
                                   }`}
                       >
-                        <CheckCircleIcon className="w-4 h-4" />
+                        <CheckCircleIcon className="w-1 h-1" />
                         <span>
                           {completedLessons.has(`${index}-${lessonIndex}`)
                             ? 'Concluída'
