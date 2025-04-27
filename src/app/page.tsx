@@ -83,6 +83,9 @@ export default function Home() {
             animate={{ opacity: 1 }}
             className="px-4 sm:px-6 pb-12 sm:pb-16 md:pb-20"
           >
+            <h2 className="text-3xl sm:text-4xl font-bold text-gold-400 mb-6 text-center">
+              {data.title}
+            </h2>
             <div className="max-w-5xl mx-auto">
               {/* Objetivos */}
               <div className="mb-6 sm:mb-8 bg-background/50 rounded-lg p-4 sm:p-6 backdrop-blur-sm">
