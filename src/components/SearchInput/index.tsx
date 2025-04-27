@@ -50,7 +50,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
 
   return (
     <div className="relative w-full" ref={inputRef}>
-      <div className="relative flex gap-4">
+      <div className="relative flex flex-col sm:flex-row gap-2 sm:gap-4">
         <div className="relative flex-1">
           <input
             type="text"
@@ -62,8 +62,8 @@ export const SearchInput: React.FC<SearchInputProps> = ({
             }}
             onKeyDown={handleKeyDown}
             placeholder="Digite o tema que você precisa estudar..."
-          className="w-full px-6 py-4 bg-background border-2 border-foreground/30 rounded-xl
-                   text-foreground placeholder-foreground/50
+          className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-background border-2 border-foreground/30 rounded-xl
+                   text-foreground placeholder-foreground/50 text-sm sm:text-base
                    focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20
                    transition-all duration-300"
         />
@@ -75,14 +75,14 @@ export const SearchInput: React.FC<SearchInputProps> = ({
       <button
         onClick={onSubmit}
         disabled={!value.trim() || loading}
-        className="px-8 py-4 bg-gradient-to-r from-gold-600 to-gold-500 rounded-xl
-                   text-dark-900 font-semibold
+        className="w-full sm:w-auto px-4 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-gold-600 to-gold-500 rounded-xl
+                   text-dark-900 font-semibold text-sm sm:text-base
                    hover:from-gold-500 hover:to-gold-400
                    transform hover:scale-[1.02] transition-all duration-300
                    focus:outline-none focus:ring-2 focus:ring-gold-500/50
                    disabled:opacity-50 disabled:cursor-not-allowed
                    disabled:hover:scale-100
-                   flex items-center gap-3"
+                   flex items-center justify-center gap-2 sm:gap-3"
       >
         {loading ? (
           <>
@@ -110,15 +110,15 @@ export const SearchInput: React.FC<SearchInputProps> = ({
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          className="absolute z-10 w-full mt-2 py-2 bg-background border border-foreground/30 rounded-lg shadow-xl"
+          className="absolute z-10 w-full mt-2 py-2 bg-background border border-foreground/30 rounded-lg shadow-xl max-h-60 overflow-y-auto"
         >
           <h3 className="px-4 py-2 text-sm font-medium text-gold-400">Temas Recentes</h3>
-          <div className="max-h-60 overflow-y-auto">
+          <div>
             {history.map((theme, index) => (
               <button
                 key={index}
                 onClick={() => handleSuggestionClick(theme)}
-                className="w-full px-4 py-2 flex items-center space-x-3 text-left hover:bg-background/80 transition-colors text-foreground"
+                className="w-full px-3 sm:px-4 py-2 flex items-center space-x-2 sm:space-x-3 text-left hover:bg-background/80 transition-colors text-foreground text-sm sm:text-base"
               >
                 <ClockIcon className="h-4 w-4 text-gold-500/50" />
                 <span>{theme}</span>
