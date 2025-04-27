@@ -4,7 +4,6 @@ import { useThemeStore } from '@/store/useThemeStore';
 
 export const Footer = () => {
   const { theme } = useThemeStore();
-  const currentYear = new Date().getFullYear();
 
   return (
     <footer className={`w-full py-6 mt-auto border-t ${theme === 'dark' ? 'border-gray-800 bg-gray-900 text-gray-300' : 'border-gray-200 bg-[#FFB366] text-white'}`}>
