@@ -29,15 +29,7 @@ export const CourseModule: React.FC<CourseModuleProps> = ({
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
   const [showExplanations, setShowExplanations] = useState<Record<number, boolean>>({});
 
-  const allLessonsCompleted = module.lessons.every(
-    (_, lessonIndex) => completedLessons.has(`${index}-${lessonIndex}`)
-  );
 
-  const moduleProgress = Math.round(
-    (Array.from(completedLessons).filter(id => id.startsWith(`${index}-`)).length /
-      module.lessons.length) *
-      100
-  );
 
   return (
     <div className="mb-4">
