@@ -56,24 +56,8 @@ export const CourseModule: React.FC<CourseModuleProps> = ({
             <BookOpenIcon className="w-6 h-6" />
           </div>
           <div className="text-left">
-            <h3 className="font-semibold">Módulo {index + 1}</h3>
-            <p className="text-sm text-foreground/70">{module.module_title}</p>
+            <p className="text-xs md:text-sm text-foreground/70">{module.module_title}</p>
           </div>
-        </div>
-        <div className="flex items-center space-x-4">
-          {allLessonsCompleted && (
-            <CheckCircleIcon className="w-6 h-6 text-green-500" />
-          )}
-          <div className="w-20 bg-dark-700 rounded-full h-2">
-            <div
-              className="h-full bg-gold-500 rounded-full transition-all duration-300"
-              style={{ width: `${moduleProgress}%` }}
-            />
-          </div>
-          <ChevronDownIcon
-            className={`w-5 h-5 transform transition-transform duration-300
-                       ${isActive ? 'rotate-180' : 'rotate-0'}`}
-          />
         </div>
       </button>
 
@@ -95,7 +79,7 @@ export const CourseModule: React.FC<CourseModuleProps> = ({
 
               {/* Lista de Lições */}
               <div className="space-y-4 mb-8">
-                <h4 className="text-lg font-medium text-gold-400 mb-4">Lições</h4>
+                <h4 className="text-sm md:text-lg font-medium text-gold-400 mb-4">Lições</h4>
                 {module.lessons.map((lesson, lessonIndex) => (
                   <div
                     key={lessonIndex}
@@ -105,10 +89,10 @@ export const CourseModule: React.FC<CourseModuleProps> = ({
                              border-l-2 border-transparent hover:border-gold-400"
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <h5 className="font-medium text-foreground text-lg hover:text-gold-400 transition-colors">{lesson.lesson_title}</h5>
+                      <h5 className="font-medium text-foreground text-sm md:text-lg hover:text-gold-400 transition-colors">{lesson.lesson_title}</h5>
                       <button
                         onClick={() => onLessonComplete(lessonIndex)}
-                        className={`flex items-center space-x-2 px-2 py-2 rounded-full text-sm
+                        className={`flex items-center space-x-2 px-2 py-2 rounded-full text-xs md:text-lg
                                   transition-all duration-300 hover:bg-opacity-80
                                   ${
                                     completedLessons.has(`${index}-${lessonIndex}`)
@@ -139,7 +123,7 @@ export const CourseModule: React.FC<CourseModuleProps> = ({
               <div className="mt-8">
                 <button
                   onClick={() => setShowQuiz(!showQuiz)}
-                  className="flex items-center space-x-2 text-lg font-medium text-gold-400 
+                  className="flex items-center space-x-2 text-sm md:text-lg font-medium text-gold-400 
                            p-4 rounded-lg bg-background/30 hover:bg-background/50 
                            transition-all duration-300 hover:bg-opacity-80
                            dark:bg-dark-800/80 dark:hover:bg-dark-800 w-full"
@@ -169,10 +153,10 @@ export const CourseModule: React.FC<CourseModuleProps> = ({
                                      transition-colors duration-300
                                      hover:bg-background/50 dark:hover:bg-dark-700"
                           >
-                            <h6 className="font-medium text-foreground mb-4">
+                            <h6 className="text-sm md:text-lg text-foreground mb-4">
                               {question.question}
                             </h6>
-                            <div className="space-y-2">
+                            <div className="space-y-2 text-sm md:text-lg">
                               {question.options.map((option, optionIndex) => (
                                 <button
                                   key={optionIndex}
