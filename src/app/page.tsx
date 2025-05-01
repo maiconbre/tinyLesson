@@ -28,19 +28,20 @@ export default function Home() {
 
       <div className="relative z-10">
         {/* Header */}
-        <header className="pt-8 sm:pt-16 md:pt-20 pb-6 sm:pb-16 px-2 sm:px-6">
+        <header className="pt-12 sm:pt-16 md:pt-20 pb-6 sm:pb-16 px-2 sm:px-6">
           <motion.div
             className="max-w-full sm:max-w-4xl mx-auto text-center"
           >
-            <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold text-gold-400 mb-4 sm:mb-6">
+            <h1 className="text-2xl md:text-5xl font-bold text-gold-400 mb-4 sm:mb-6">
                Mini Curso Gen.
             </h1>
-            <p className="text-base sm:text-xl text-foreground/80">
-              Gere um pequeno curso sobre qualquer tema em segundos.
+            <p className="text-sm sm:text-xl text-foreground/80">
+              Um pequeno curso, qualquer tema  <br/>
               <br className="hidden sm:block" />
-              Compreenda qualquer tema em menos de 30 minutos de estudos.
+              em segundos.<br/>
               <br className="hidden sm:block" />
-              Perfeito para revisão rápida.
+              <span className="text-xs">30 minutos de estudos.</span>
+
             </p>
             
           </motion.div>

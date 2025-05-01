@@ -61,7 +61,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
               setShowSuggestions(true);
             }}
             onKeyDown={handleKeyDown}
-            placeholder="Digite o tema que você precisa estudar..."
+            placeholder="Digite o tema ..."
           className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-background border-2 border-foreground/30 rounded-xl
                    text-foreground placeholder-foreground/50 text-sm sm:text-base
                    focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20

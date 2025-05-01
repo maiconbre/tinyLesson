@@ -4,7 +4,7 @@ import { StarIcon as StarOutline } from '@heroicons/react/24/outline';
 import { StarIcon as StarSolid } from '@heroicons/react/24/solid';
 
 interface RatingProps {
-  onRate: (score: number) => void;
+  onRate: (score: number, email?: string) => void;
   onClose: () => void;
 }
 
@@ -12,14 +12,14 @@ export const Rating: React.FC<RatingProps> = ({ onRate, onClose }) => {
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [hasRated, setHasRated] = useState(false);
+  const [showEmailField, setShowEmailField] = useState(false);
+  const [email, setEmail] = useState('');
 
   const handleRate = (score: number) => {
     setRating(score);
     setHasRated(true);
     onRate(score);
-    setTimeout(() => {
-      onClose();
-    }, 2000);
+    setShowEmailField(true);
   };
 
   return (
@@ -73,12 +73,42 @@ export const Rating: React.FC<RatingProps> = ({ onRate, onClose }) => {
             >
               <div className="flex justify-center mb-4">
                 {[...Array(rating)].map((_, i) => (
-                  <StarSolid key={i} className="w-8 h-8 text-gold-500" />
+                  <StarSolid key={i} className="w-6 h-6 sm:w-8 sm:h-8 text-gold-500" />
                 ))}
               </div>
-              <h3 className="text-xl font-semibold text-gold-400">
+              <h3 className="text-lg sm:text-xl font-semibold text-gold-400 mb-4">
                 Obrigado pelo feedback!
               </h3>
+              <AnimatePresence>
+                {showEmailField && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="space-y-4 px-2"
+                  >
+                    <p className="text-sm text-foreground/70">
+                      Quer receber atualizações? Deixe seu e-mail:
+                    </p>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="seu@email.com"
+                      className="w-full px-3 py-2 text-sm bg-background/50 rounded-lg border border-foreground/30"
+                    />
+                    <button
+                      onClick={() => {
+                        onRate(rating, email);
+                        onClose();
+                      }}
+                      className="w-full py-2 text-sm bg-gold-500/20 text-gold-400 rounded-lg hover:bg-gold-500/30"
+                    >
+                      Enviar
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           )}
         </AnimatePresence>
