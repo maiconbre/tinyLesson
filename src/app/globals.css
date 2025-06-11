@@ -1,42 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 :root {
-  --color-primary: #6b5ecd; /* Azul meio roxo para modo dark */
-  --color-secondary: #4a3fb5; /* Tom mais escuro de azul roxo para modo dark */
-  --color-background: #ffffff;
-  --color-foreground: #171717;
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Light Theme Defaults */
+  --background: #FFF8E1; /* gold-50 */
+  --foreground: #1A1A1A; /* dark-800 */
+  --color-primary: #E6A000; /* gold-500 */
+  --color-secondary: #D49400; /* gold-600 */
+  --color-accent: #007A7A; /* teal-500 */
+  --color-accent-hover: #006969; /* teal-600 */
 }
-
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Dark Theme Defaults (if no class is applied) */
+    --background: #121212; /* dark-900 */
+    --foreground: #CFD8DC; /* dark-100 */
+    --color-primary: #E6A000; /* gold-500 */
+    --color-secondary: #FFCA28; /* gold-400 */
+    --color-accent: #26A69A; /* teal-400 */
+    --color-accent-hover: #007A7A; /* teal-500 */
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 /* Estilos para botões */
 button {
-  background-color: var(--color-primary);
+  background-color: var(--color-accent);
   color: white;
   border: none;
-  border-radius: 5px;
-  padding: 10px 15px;
+  border-radius: 6px;
+  padding: 10px 20px;
   cursor: pointer;
-  transition: background-color 0.3s, transform 0.2s;
+  transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
+  font-weight: 500; /* Medium weight for button text */
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); /* Subtle shadow */
 }
 
 button:hover {
-  background-color: var(--color-secondary);
-  transform: scale(1.05);
+  background-color: var(--color-accent-hover);
+  transform: scale(1.03); /* Slightly reduced scale for subtlety */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Enhanced shadow on hover */
+}
+
+button:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: scale(1); /* Disable scale transform on disabled */
+  box-shadow: none; /* Remove shadow on disabled */
 }
 
 /* Estilos para links */
@@ -51,13 +72,19 @@ a:hover {
 }
 
 body.light {
-  --background: #fff8e7; /* Tom branco amarelado */
-  --foreground: #4a4a4a; /* Texto escuro acinzentado */
-  --color-primary: #ffb366; /* Amarelo laranjado pastel */
-  --color-secondary: #ffa07a; /* Tom mais claro de laranja pastel */
+  --background: #FFF8E1; /* gold-50 */
+  --foreground: #1A1A1A; /* dark-800 */
+  --color-primary: #E6A000; /* gold-500 */
+  --color-secondary: #D49400; /* gold-600 */
+  --color-accent: #007A7A; /* teal-500 */
+  --color-accent-hover: #006969; /* teal-600 */
 }
 
 body.dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
+  --background: #121212; /* dark-900 */
+  --foreground: #CFD8DC; /* dark-100 */
+  --color-primary: #E6A000; /* gold-500 */
+  --color-secondary: #FFCA28; /* gold-400 */
+  --color-accent: #26A69A; /* teal-400 */
+  --color-accent-hover: #007A7A; /* teal-500 */
 }

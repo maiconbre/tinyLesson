@@ -63,8 +63,8 @@ export const SearchInput: React.FC<SearchInputProps> = ({
             onKeyDown={handleKeyDown}
             placeholder="Digite o tema ..."
           className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-background border-2 border-foreground/30 rounded-xl
-                   text-foreground placeholder-foreground/50 text-sm sm:text-base
-                   focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20
+                   text-foreground placeholder-foreground/50 text-sm sm:text-base font-sans
+                   focus:border-teal-500 dark:focus:border-teal-400 focus:ring-2 focus:ring-teal-500/30 dark:focus:ring-teal-400/30
                    transition-all duration-300"
         />
         <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-foreground/50">
@@ -75,18 +75,17 @@ export const SearchInput: React.FC<SearchInputProps> = ({
       <button
         onClick={onSubmit}
         disabled={!value.trim() || loading}
-        className="w-full sm:w-auto px-4 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-gold-600 to-gold-500 rounded-xl
-                   text-dark-900 font-semibold text-sm sm:text-base
-                   hover:from-gold-500 hover:to-gold-400
-                   transform hover:scale-[1.02] transition-all duration-300
-                   focus:outline-none focus:ring-2 focus:ring-gold-500/50
-                   disabled:opacity-50 disabled:cursor-not-allowed
-                   disabled:hover:scale-100
-                   flex items-center justify-center gap-2 sm:gap-3"
+        className="w-full sm:w-auto px-4 sm:px-8 py-3 sm:py-4 rounded-xl
+                   font-semibold text-sm sm:text-base
+                   flex items-center justify-center gap-2 sm:gap-3
+                   focus:outline-none /* Global button styles will handle focus if not overridden by more specific Tailwind classes */
+                   /* Specific Tailwind classes for bg, hover, text color, and disabled states will override global button styles */
+                   bg-teal-500 hover:bg-teal-600 dark:bg-teal-400 dark:hover:bg-teal-500 text-white
+                   disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
       >
         {loading ? (
           <>
-            <svg className="animate-spin h-5 w-5 text-dark-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
@@ -110,17 +109,17 @@ export const SearchInput: React.FC<SearchInputProps> = ({
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          className="absolute z-10 w-full mt-2 py-2 bg-background border border-foreground/30 rounded-lg shadow-xl max-h-60 overflow-y-auto"
+          className="absolute z-10 w-full mt-2 py-2 bg-background border border-foreground/30 rounded-lg shadow-xl max-h-60 overflow-y-auto font-sans"
         >
-          <h3 className="px-4 py-2 text-sm font-medium text-gold-400">Temas Recentes</h3>
+          <h3 className="px-4 py-2 text-sm font-medium text-teal-500 dark:text-teal-400">Temas Recentes</h3>
           <div>
             {history.map((theme, index) => (
               <button
                 key={index}
                 onClick={() => handleSuggestionClick(theme)}
-                className="w-full px-3 sm:px-4 py-2 flex items-center space-x-2 sm:space-x-3 text-left hover:bg-background/80 transition-colors text-foreground text-sm sm:text-base"
+                className="w-full px-3 sm:px-4 py-2 flex items-center space-x-2 sm:space-x-3 text-left hover:bg-foreground/5 dark:hover:bg-foreground/10 transition-colors text-foreground text-sm sm:text-base"
               >
-                <ClockIcon className="h-4 w-4 text-gold-500/50" />
+                <ClockIcon className="h-4 w-4 text-teal-500/80 dark:text-teal-400/80" />
                 <span>{theme}</span>
               </button>
             ))}

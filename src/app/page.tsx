@@ -10,6 +10,19 @@ import { SearchInput } from '@/components/SearchInput';
 import { useCourseStore } from '@/store/useCourseStore';
 
 
+const listItemVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: {
+      delay: i * 0.07,
+      duration: 0.3,
+      ease: "easeOut"
+    }
+  })
+};
+
 export default function Home() {
   const [theme, setTheme] = useState('');
   const [showRating, setShowRating] = useState(false);
@@ -28,8 +41,11 @@ export default function Home() {
 
       <div className="relative z-10">
         {/* Header */}
-        <header className="pt-12 sm:pt-16 md:pt-20 pb-6 sm:pb-16 px-2 sm:px-6">
+        <header className="pt-12 sm:pt-16 md:pt-20 pb-8 sm:pb-12 px-4 sm:px-6"> {/* Adjusted pb and px */}
           <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
             className="max-w-full sm:max-w-4xl mx-auto text-center"
           >
             <h1 className="text-2xl md:text-5xl font-bold text-gold-400 mb-4 sm:mb-6">
@@ -82,6 +98,7 @@ export default function Home() {
           <motion.section
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
             className="px-4 sm:px-6 pb-12 sm:pb-16 md:pb-20"
           >
             <h2 className="text-3xl sm:text-4xl font-bold text-gold-400 mb-6 text-center">
@@ -93,7 +110,15 @@ export default function Home() {
                 <h3 className="text-lg sm:text-xl font-semibold text-gold-400 mb-3 sm:mb-4">Objetivos</h3>
                 <ul className="list-disc list-inside space-y-2 text-foreground/70">
                   {data.objectives.map((objective, index) => (
-                    <li key={index}>{objective}</li>
+                    <motion.li
+                      key={index}
+                      variants={listItemVariants}
+                      custom={index}
+                      initial="hidden"
+                      animate="visible"
+                    >
+                      {objective}
+                    </motion.li>
                   ))}
                 </ul>
               </div>
@@ -101,22 +126,29 @@ export default function Home() {
               {/* Módulos do Curso */}
               <div className="mb-8">
                 {data.modules.map((module, index) => (
-                  <CourseModule
-                    key={index}
-                    module={module}
-                    index={index}
-                    isActive={index === progress.currentModule}
-                    onSelect={() => {
-                      if (index === progress.currentModule) {
-                        // Se clicar no módulo atual, define como -1 para "desselecionar"
-                        actions.goToModule(-1);
-                      } else {
-                        actions.goToModule(index);
-                      }
-                    }}
-                    completedLessons={progress.completedLessons}
-                    onLessonComplete={(lessonId: number) => actions.markLessonComplete(index, lessonId)}
-                  />
+                  <motion.div
+                    key={index} // Ensure key is on the motion component if it's the direct child of map
+                    variants={listItemVariants} // Optional: if you want modules themselves to stagger in
+                    custom={index}
+                    initial="hidden"
+                    animate="visible"
+                  >
+                    <CourseModule
+                      key={module.module_title} // It's good practice to have a stable key on the actual component
+                      module={module}
+                      index={index}
+                      isActive={index === progress.currentModule}
+                      onSelect={() => {
+                        if (index === progress.currentModule) {
+                          actions.goToModule(-1);
+                        } else {
+                          actions.goToModule(index);
+                        }
+                      }}
+                      completedLessons={progress.completedLessons}
+                      onLessonComplete={(lessonId: number) => actions.markLessonComplete(index, lessonId)}
+                    />
+                  </motion.div>
                 ))}
               </div>
 
@@ -125,32 +157,56 @@ export default function Home() {
                 <h3 className="text-lg sm:text-xl font-semibold text-gold-400 mb-3 sm:mb-4">Glossário</h3>
                 <div className="grid grid-cols-1 gap-2 sm:gap-4 sm:grid-cols-2 text-foreground/70">
                   {data.glossary.map((item, index) => (
-                    <div key={index} className="bg-background/30 p-2 sm:p-4 rounded-lg">
+                    <motion.div
+                      key={index}
+                      className="bg-background/30 p-2 sm:p-4 rounded-lg"
+                      variants={listItemVariants}
+                      custom={index}
+                      initial="hidden"
+                      animate="visible"
+                    >
                       <h4 className="font-medium text-foreground mb-2">{item.term}</h4>
                       <p>{item.definition}</p>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               </div>
-
               {/* Resumo Final */}
               {data.final_summary && (
-                <div className="mt-6 sm:mt-8 bg-background/50 rounded-lg p-4 sm:p-6 backdrop-blur-sm">
+                <motion.div
+                  className="mt-6 sm:mt-8 bg-background/50 rounded-lg p-4 sm:p-6 backdrop-blur-sm"
+                  initial={{ opacity: 0, y:10 }}
+                  animate={{ opacity: 1, y:0 }}
+                  transition={{ delay: data.objectives.length * 0.07 + 0.2 }} // Delay after objectives
+                >
                   <h3 className="text-lg sm:text-xl font-semibold text-gold-400 mb-3 sm:mb-4">Resumo Final</h3>
                   <p className="text-foreground/70">{data.final_summary}</p>
-                </div>
+                </motion.div>
               )}
 
               {/* Dicas de Estudo */}
               {data.study_tips.length > 0 && (
-                <div className="mt-6 sm:mt-8 bg-background/50 rounded-lg p-4 sm:p-6 backdrop-blur-sm">
+                <motion.div
+                  className="mt-6 sm:mt-8 bg-background/50 rounded-lg p-4 sm:p-6 backdrop-blur-sm"
+                  initial={{ opacity: 0, y:10 }}
+                  animate={{ opacity: 1, y:0 }}
+                  transition={{ delay: (data.objectives.length + data.glossary.length) * 0.07 + 0.3 }} // Delay after objectives and glossary
+                >
                   <h3 className="text-lg sm:text-xl font-semibold text-gold-400 mb-3 sm:mb-4">Dicas de Estudo</h3>
                   <ul className="list-decimal list-inside space-y-2 text-foreground/70">
                     {data.study_tips.map((tip, index) => (
-                      <li key={index}>{tip}</li>
+                      <motion.li
+                        key={index}
+                        variants={listItemVariants}
+                        custom={index} // This index will be relative to the study_tips list
+                        initial="hidden"
+                        animate="visible"
+                      >
+                        {tip}
+                      </motion.li>
                     ))}
                   </ul>
-                </div>
+                </motion.div>
               )}
 
               {/* Controles de Navegação */}
@@ -159,7 +215,17 @@ export default function Home() {
                   <PdfButton courseData={data} />
                   <button
                     onClick={() => setShowRating(true)}
-                    className="px-2 sm:px-4 py-1.5 bg-gold-600 text-dark-900 rounded-lg hover:bg-gold-500 text-xs sm:text-base"
+                    // Applying base classes and then specific overrides for this button if needed.
+                    // For consistency with global button styles, we'll use accent color.
+                    // text-xs sm:text-base are font size overrides.
+                    // Global styles provide padding, border-radius, text color, transitions.
+                    // We just specify background and hover, and font size here.
+                    className="text-xs sm:text-base"
+                    // No need to add default button classes if it's a standard <button> element,
+                    // as it will inherit from global styles.
+                    // If we want to override specific parts like padding or radius for this one:
+                    // className="px-3 py-1.5 text-xs sm:text-base rounded-md"
+                    // This will use global accent for bg and white text.
                   >
                     Avaliar Curso
                   </button>

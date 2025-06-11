@@ -24,44 +24,55 @@ export const Rating: React.FC<RatingProps> = ({ onRate, onClose }) => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      className="fixed inset-0 flex items-center justify-center bg-dark-900/80 backdrop-blur-sm z-50 dark:bg-dark-900/90"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1, transition: { duration: 0.2, ease: "easeOut" } }}
+      exit={{ opacity: 0, transition: { duration: 0.2, ease: "easeIn" } }}
+      className="fixed inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm z-50 p-4"
     >
-      <div className="bg-background p-8 rounded-2xl shadow-xl max-w-md w-full mx-4 dark:bg-dark-800">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1, transition: { duration: 0.25, ease: "easeOut" } }}
+        exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2, ease: "easeIn" } }}
+        className="bg-white dark:bg-dark-700 p-6 sm:p-8 rounded-xl shadow-2xl max-w-md w-full font-sans"
+      >
         <AnimatePresence mode="wait">
           {!hasRated ? (
             <motion.div
               key="rating"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0, transition: { duration: 0.3, ease: "easeOut" } }}
+              exit={{ opacity: 0, x: 20, transition: { duration: 0.2, ease: "easeIn" } }}
               className="text-center"
             >
-              <h2 className="text-2xl font-bold text-gold-400 mb-6">
+              <h2 className="font-heading text-xl sm:text-2xl text-neutral-800 dark:text-white mb-4">
                 Como foi sua experiência?
               </h2>
-              <p className="text-foreground/70 mb-8">
+              <p className="text-neutral-600 dark:text-neutral-300 text-sm sm:text-base mb-6">
                 Sua avaliação nos ajuda a melhorar o conteúdo para futuros estudantes.
               </p>
-              <div className="flex justify-center space-x-2">
+              <div className="flex justify-center space-x-1 sm:space-x-2 mb-6">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button
                     key={star}
                     onMouseEnter={() => setHover(star)}
                     onMouseLeave={() => setHover(0)}
                     onClick={() => handleRate(star)}
-                    className="p-1 transition-transform hover:scale-110"
+                    className="p-1 rounded-full transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-teal-500/50 dark:focus:ring-teal-400/50"
                   >
                     {star <= (hover || rating) ? (
-                      <StarSolid className="w-10 h-10 text-gold-500" />
+                      <StarSolid className="w-8 h-8 sm:w-10 sm:h-10 text-teal-500 dark:text-teal-400" />
                     ) : (
-                      <StarOutline className="w-10 h-10 text-gold-500/50" />
+                      <StarOutline className="w-8 h-8 sm:w-10 sm:h-10 text-neutral-300 dark:text-neutral-500" />
                     )}
                   </button>
                 ))}
               </div>
+              <button
+                onClick={onClose}
+                className="w-full py-2.5 px-4 text-sm font-medium text-neutral-600 dark:text-neutral-300 bg-neutral-100 dark:bg-dark-600 hover:bg-neutral-200 dark:hover:bg-dark-500 rounded-lg transition-colors"
+              >
+                Avaliar depois
+              </button>
             </motion.div>
           ) : (
             <motion.div
@@ -71,12 +82,12 @@ export const Rating: React.FC<RatingProps> = ({ onRate, onClose }) => {
               exit={{ opacity: 0 }}
               className="text-center py-4"
             >
-              <div className="flex justify-center mb-4">
+              <div className="flex justify-center mb-3 sm:mb-4">
                 {[...Array(rating)].map((_, i) => (
-                  <StarSolid key={i} className="w-6 h-6 sm:w-8 sm:h-8 text-gold-500" />
+                  <StarSolid key={i} className="w-6 h-6 sm:w-7 sm:h-7 text-teal-500 dark:text-teal-400" />
                 ))}
               </div>
-              <h3 className="text-lg sm:text-xl font-semibold text-gold-400 mb-4">
+              <h3 className="font-heading text-lg sm:text-xl text-neutral-800 dark:text-white mb-3 sm:mb-4">
                 Obrigado pelo feedback!
               </h3>
               <AnimatePresence>
@@ -85,42 +96,47 @@ export const Rating: React.FC<RatingProps> = ({ onRate, onClose }) => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
-                    className="space-y-4 px-2"
+                    className="space-y-3 sm:space-y-4 px-2"
                   >
-                    <p className="text-sm text-foreground/70">
-                      Quer receber atualizações? Deixe seu e-mail:
+                    <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-300">
+                      Quer receber atualizações? Deixe seu e-mail (opcional):
                     </p>
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="seu@email.com"
-                      className="w-full px-3 py-2 text-sm bg-background/50 rounded-lg border border-foreground/30"
+                      className="w-full px-3 py-2 text-sm font-sans rounded-md
+                                 bg-neutral-100 dark:bg-dark-600 border border-neutral-300 dark:border-dark-500
+                                 text-neutral-800 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-500
+                                 focus:border-teal-500 dark:focus:border-teal-400 focus:ring-1 focus:ring-teal-500 dark:focus:ring-teal-400
+                                 transition-colors duration-200"
                     />
+                    {/* This button will inherit global styles */}
                     <button
                       onClick={() => {
-                        onRate(rating, email);
-                        onClose();
+                        onRate(rating, email); // Send email with rating
+                        onClose(); // Close modal
                       }}
-                      className="w-full py-2 text-sm bg-gold-500/20 text-gold-400 rounded-lg hover:bg-gold-500/30"
+                      className="w-full text-sm py-2.5 px-4" // Uses global button styles from globals.css
                     >
-                      Enviar
+                      Enviar Feedback
                     </button>
                   </motion.div>
                 )}
               </AnimatePresence>
+              {/* If email field is shown, the main close is handled by "Enviar Feedback" or a separate explicit close */}
+              {!showEmailField && (
+                 <button
+                    onClick={onClose} // This button now closes the modal directly after "Obrigado" if email part is skipped
+                    className="w-full py-2.5 px-4 text-sm font-medium text-neutral-600 dark:text-neutral-300 bg-neutral-100 dark:bg-dark-600 hover:bg-neutral-200 dark:hover:bg-dark-500 rounded-lg transition-colors mt-4"
+                  >
+                   Fechar
+                </button>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
-
-        {!hasRated && (
-          <button
-            onClick={onClose}
-            className="mt-8 text-gold-400/60 hover:text-gold-400 text-sm font-medium"
-          >
-            Avaliar depois
-          </button>
-        )}
       </div>
     </motion.div>
   );

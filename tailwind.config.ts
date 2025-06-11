@@ -9,31 +9,59 @@ const config: Config = {
   darkMode: 'class',
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'sans-serif'],
+        heading: ['Poppins', 'sans-serif'],
+      },
+      fontSize: {
+        'xs': '0.75rem',    // 12px
+        'sm': '0.875rem',   // 14px
+        'base': '1rem',     // 16px
+        'lg': '1.125rem',   // 18px
+        'xl': '1.25rem',    // 20px
+        '2xl': '1.5rem',    // 24px
+        '3xl': '1.875rem',  // 30px
+        '4xl': '2.25rem',   // 36px
+        '5xl': '3rem',      // 48px
+        '6xl': '3.75rem',   // 60px
+      },
       colors: {
         gold: {
-          50: '#FDFAF3',
-          100: '#FBF5E6',
-          200: '#F7E8BF',
-          300: '#F3DB99',
-          400: '#EFCD73',
-          500: '#EBC04D',
-          600: '#E6B325',
-          700: '#C49516',
-          800: '#977111',
-          900: '#694E0C',
+          50: '#FFF8E1',  // Lighter, creamier base
+          100: '#FFECB3', // Light gold
+          200: '#FFE082', // Soft gold
+          300: '#FFD54F', // Bright gold
+          400: '#FFCA28', // Richer gold
+          500: '#E6A000', // Target primary gold - richer, more orange
+          600: '#D49400', // Darker gold
+          700: '#B88000', // Deep gold
+          800: '#9C6C00', // Very dark gold
+          900: '#7F5800', // Deepest gold
         },
         dark: {
-          50: '#FAFAFA',
-          100: '#F5F5F5',
-          200: '#E5E5E5',
-          300: '#D4D4D4',
-          400: '#A3A3A3',
-          500: '#737373',
-          600: '#525252',
-          700: '#404040',
-          800: '#262626',
-          900: '#171717',
+          50: '#ECEFF1',  // Lightest gray for text on dark primary
+          100: '#CFD8DC', // Light gray
+          200: '#B0BEC5', // Medium light gray
+          300: '#90A4AE', // Gray
+          400: '#78909C', // Darker gray
+          500: '#607D8B', // Slate gray
+          600: '#546E7A', // Deep slate gray
+          700: '#455A64', // Very dark slate gray
+          800: '#1A1A1A', // Darker background shade
+          900: '#121212', // Dark theme background
         },
+        teal: {
+          50: '#E0F2F1',
+          100: '#B2DFDB',
+          200: '#80CBC4',
+          300: '#4DB6AC',
+          400: '#26A69A',
+          500: '#007A7A', // Target accent teal
+          600: '#006969',
+          700: '#005858',
+          800: '#004747',
+          900: '#003636',
+        }
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-out',
