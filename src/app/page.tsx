@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
+import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMiniCourse } from '@/hooks/useMiniCourse';
 import { CourseModule } from '@/components/CourseModule';
@@ -35,12 +36,7 @@ const itemVariants = {
 };
 
 // Componente de Estrelas Otimizado (Hydration Safe - Ultra Slow)
-// Componente de Estrelas Otimizado (Hydration Safe - Ultra Slow / Realístico)
 const StarField = () => {
-  // Configuração: 30 estrelas.
-  // Duração extrema (25s a 40s).
-  // Com o keyframe de 35%-65% (30% do tempo), a estrela fica visível por ~8s a 12s.
-  // O fade-in/out leva ~10s cada.
   const stars = Array.from({ length: 30 }).map((_, i) => ({
     id: i,
     top: `${(i * 19) % 100}%`,
@@ -73,15 +69,34 @@ const StarField = () => {
 export default function Home() {
   const [theme, setTheme] = useState('');
   const [showRating, setShowRating] = useState(false);
+  const [showCompletionModal, setShowCompletionModal] = useState(false); // State for completion modal
   const { data, loading, error, progress, generationProgress, actions } = useMiniCourse();
   const rateTheme = useCourseStore(state => state.rateTheme);
-  const resultsRef = useRef<HTMLDivElement>(null); // Changed to useRef
+  const resultsRef = useRef<HTMLDivElement>(null);
+
+  // Calculate progress percentage
+  const totalLessons = data ? data.modules.reduce((acc, m) => acc + m.lessons.length, 0) : 0;
+  const completedCount = progress.completedLessons.size;
+  const progressPercentage = totalLessons > 0 ? (completedCount / totalLessons) * 100 : 0;
 
   const handleSubmit = () => {
     if (theme.trim()) {
       actions.generateCourse(theme);
     }
   };
+
+  // Trigger Confetti & Modal on 100% Completion
+  React.useEffect(() => {
+    if (progressPercentage === 100 && totalLessons > 0) {
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#F97316', '#A855F7', '#FFD700'] // Orange, Purple, Gold
+      });
+      setTimeout(() => setShowCompletionModal(true), 1000); // Show modal after 1s
+    }
+  }, [progressPercentage, totalLessons]);
 
   // Auto-scroll when data loads
   React.useEffect(() => {
@@ -95,11 +110,38 @@ export default function Home() {
   return (
     <div className="min-h-screen text-foreground transition-colors duration-300 relative overflow-x-hidden">
 
+      {/* GLOBAL PROGRESS BAR (Fixed Top) */}
+      {data && !loading && (
+        <motion.div
+          initial={{ y: -10 }}
+          animate={{ y: 0 }}
+          className="fixed top-0 left-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-border/50 px-4 py-2 shadow-sm"
+        >
+          <div className="max-w-5xl mx-auto flex items-center gap-4">
+            <span className="text-xs font-bold text-muted-foreground whitespace-nowrap hidden sm:block">
+              🚀 Progresso do Curso
+            </span>
+            <div className="flex-1 relative h-3 bg-muted rounded-full overflow-hidden">
+              <motion.div
+                className="absolute top-0 left-0 h-full bg-gradient-to-r from-orange-500 to-purple-600"
+                initial={{ width: 0 }}
+                animate={{ width: `${progressPercentage}%` }}
+                transition={{ duration: 0.5, ease: "circOut" }}
+              />
+            </div>
+            <span className="text-xs font-bold text-primary whitespace-nowrap min-w-[3ch]">
+              {Math.round(progressPercentage)}%
+            </span>
+          </div>
+        </motion.div>
+      )}
+
       {/* Container de Estrelas (Só aparece no Dark via CSS) */}
       <StarField />
 
-      <main className="container mx-auto px-4 py-8 sm:py-12 md:py-20 relative z-10">
+      <main className="container mx-auto px-4 py-8 sm:py-12 md:py-20 relative z-10 mt-8"> {/* Added mt-8 for progress bar clearance */}
 
+        {/* ... (Existing Hero & Search - Unchanged) ... */}
         {/* Header / Hero Section */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -192,6 +234,7 @@ export default function Home() {
                 transition={{ duration: 0.6, ease: "easeOut" }}
                 className="space-y-8 max-w-5xl mx-auto"
               >
+                {/* ... (Existing Course Content render) ... */}
 
                 {/* Título de Confirmação do Tema (logo abaixo do campo de pesquisa) */}
                 <motion.div
@@ -243,11 +286,11 @@ export default function Home() {
                         <Card className="border-primary/10 bg-gradient-to-br from-card to-primary/5">
                           <CardHeader>
                             <CardTitle className="flex items-center gap-2 text-xl text-primary">
-                              <BookOpen className="w-5 h-5" /> Conclusão
+                              <BookOpen className="w-5 h-5" /> ✨ Conclusão Épica
                             </CardTitle>
                           </CardHeader>
                           <CardContent>
-                            <p className="text-muted-foreground leading-relaxed">{data.final_summary}</p>
+                            <p className="text-muted-foreground leading-relaxed text-lg">{data.final_summary}</p>
                           </CardContent>
                         </Card>
                       </motion.div>
@@ -272,7 +315,7 @@ export default function Home() {
                         <ul className="space-y-3">
                           {data.objectives.map((obj, i) => (
                             <li key={i} className="text-sm text-muted-foreground flex gap-2">
-                              <span className="text-primary mt-1">•</span> {obj}
+                              <span className="text-primary mt-1">🚀</span> {obj}
                             </li>
                           ))}
                         </ul>
@@ -284,16 +327,36 @@ export default function Home() {
                       <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
                         <CardHeader>
                           <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                            📚 Glossário
+                            🧠 Glossário Vital
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                           {data.glossary.map((item, i) => (
                             <div key={i} className="text-sm border-b border-border/50 last:border-0 pb-2 last:pb-0">
-                              <span className="font-bold text-foreground block">{item.term}</span>
+                              <span className="font-bold text-foreground block">📌 {item.term}</span>
                               <span className="text-muted-foreground">{item.definition}</span>
                             </div>
                           ))}
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Dicas de Estudo */}
+                    {data.study_tips && data.study_tips.length > 0 && (
+                      <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
+                        <CardHeader>
+                          <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                            💡 Dicas de Mestre
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <ul className="space-y-3">
+                            {data.study_tips.map((tip, i) => (
+                              <li key={i} className="text-sm text-muted-foreground flex gap-2">
+                                <span className="text-primary mt-1">⚡</span> {tip}
+                              </li>
+                            ))}
+                          </ul>
                         </CardContent>
                       </Card>
                     )}
@@ -323,6 +386,52 @@ export default function Home() {
               }}
               onClose={() => setShowRating(false)}
             />
+          )}
+        </AnimatePresence>
+
+        {/* COMPLETION MODAL */}
+        <AnimatePresence>
+          {showCompletionModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+            >
+              <motion.div
+                initial={{ scale: 0.8, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.8, y: 20 }}
+                className="bg-card border-2 border-primary/50 p-8 rounded-2xl shadow-2xl max-w-md w-full text-center relative overflow-hidden"
+              >
+                {/* Background Glow */}
+                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
+
+                <motion.div
+                  animate={{ rotate: [0, 10, -10, 0] }}
+                  transition={{ repeat: Infinity, duration: 2 }}
+                  className="text-6xl mb-4"
+                >
+                  🏆
+                </motion.div>
+
+                <h2 className="text-3xl font-black text-primary mb-2">Curso Concluído!</h2>
+                <p className="text-muted-foreground mb-6">
+                  Parabéns! Você dominou o guia sobre <span className="text-foreground font-bold">{data?.title}</span>.
+                </p>
+
+                <div className="flex flex-col gap-3">
+                  {data && <PdfButton courseData={data} />}
+                  <Button
+                    size="lg"
+                    className="w-full font-bold text-lg animate-pulse hover:animate-none"
+                    onClick={() => setShowCompletionModal(false)}
+                  >
+                    Continuar Aprendendo
+                  </Button>
+                </div>
+              </motion.div>
+            </motion.div>
           )}
         </AnimatePresence>
       </main>
