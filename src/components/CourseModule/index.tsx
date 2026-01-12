@@ -62,7 +62,7 @@ export const CourseModule: React.FC<CourseModuleProps> = ({
             onSelect();
           }}
           className={`w-full flex items-center justify-between p-4 rounded-t-lg
-                     transition-colors duration-300 group
+                     transition-colors duration-300 group hover:no-underline
                      ${isActive ? 'bg-primary/10 text-primary' : 'hover:bg-muted/50'}`}
         >
           <div className="flex items-center space-x-3">
