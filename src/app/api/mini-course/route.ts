@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { MiniCourse, Module, Lesson, QuizQuestion, GlossaryItem } from '@/hooks/useMiniCourse';
 
-const WEBHOOK_URL = 'https://n8n.targetweb.tech/webhook/f3cdcfd1-71d8-46fb-b6cd-c855cdd8e1db';
+const WEBHOOK_URL = 'https://n8n.targetweb.tech/webhook/tiny-leson';
 
 const extractJsonFromMarkdown = (text: string): string => {
   console.log('Extraindo JSON do markdown, tamanho do texto:', text.length);
@@ -13,7 +13,7 @@ const extractJsonFromMarkdown = (text: string): string => {
       text = directParse.output;
     }
   } catch {
-    
+
   }
 
   // Procura por blocos de código JSON (tolerante a espaços, quebras de linha e ausência de linguagem)
@@ -112,7 +112,7 @@ const validateResponse = (data: Record<string, unknown>): MiniCourse => {
       typeof module.introduction === 'string' &&
       Array.isArray(module.lessons) &&
       Array.isArray(module.quiz) &&
-      module.quiz.every((q: { question: string; options: string[]; answer: string; explanation: string; }) => 
+      module.quiz.every((q: { question: string; options: string[]; answer: string; explanation: string; }) =>
         typeof q.question === 'string' &&
         Array.isArray(q.options) &&
         q.options.every((opt: string) => typeof opt === 'string') &&
@@ -163,7 +163,7 @@ const callWebhook = async (theme: string) => {
     });
 
     console.log('Status da resposta:', response.status);
-    
+
     if (!response.ok) {
       throw new Error(`Erro na chamada: ${response.status} ${response.statusText}`);
     }
@@ -179,37 +179,55 @@ const callWebhook = async (theme: string) => {
       // Processa e extrai o JSON da resposta
       let data;
       console.log('Processando conteúdo da resposta');
-      
+
       const processResponse = (content: string) => {
         try {
           const parsed = JSON.parse(content);
-          // Se for objeto com output, retorna o conteúdo do output
-          if (parsed?.output) {
-            console.log('Encontrado campo output no JSON');
-            return extractJsonFromMarkdown(parsed.output);
+
+          let extracted = parsed;
+
+          // Se for array com output (formato comum n8n)
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            // Caso: [{"output": {...}}] ou [{"output": "..."}]
+            if (parsed[0]?.output) {
+              extracted = parsed[0].output;
+            }
+            // Caso: [{"title": "...", "modules": ...}] (já é o curso direto no array)
+            else if (parsed[0]?.title && parsed[0]?.modules) {
+              extracted = parsed[0];
+            }
           }
-          // Se for array com output, retorna o conteúdo do primeiro output
-          if (Array.isArray(parsed) && parsed[0]?.output) {
-            console.log('Encontrado array com output');
-            return extractJsonFromMarkdown(parsed[0].output);
+          // Se for objeto com output
+          else if (parsed?.output) {
+            extracted = parsed.output;
           }
-          // Se for JSON válido direto, normaliza e retorna
+
+          // Se o extraído já for um objeto completo (não string), retorna stringificado para o próximo passo
+          if (typeof extracted === 'object' && extracted !== null) {
+            console.log('Output já é um objeto JSON válido, retornando.');
+            return JSON.stringify(extracted);
+          }
+
+          // Se for string, tenta extrair JSON dela (pode ser markdown ou string suja)
+          if (typeof extracted === 'string') {
+            console.log('Output é string, tentando extrair JSON.');
+            return extractJsonFromMarkdown(extracted);
+          }
+
+          // Fallback: retorna o original normalizado
           const normalized = content
-            .replace(/\\\\n/g, '\\n')  // Corrige escape duplo de quebras de linha
-            .replace(/\\\\"/g, '\\"')  // Corrige escape duplo de aspas
-            .replace(/\\\\t/g, '\\t'); // Corrige escape duplo de tabs
+            .replace(/\\\\n/g, '\\n')
+            .replace(/\\\\"/g, '\\"')
+            .replace(/\\\\t/g, '\\t');
 
           try {
-            // Testa se o conteúdo normalizado é válido
             JSON.parse(normalized);
             return normalized;
           } catch {
-            // Se não for válido, retorna o conteúdo original
             return content;
           }
         } catch {
-          // Se não for JSON válido, tenta extrair do markdown
-          console.log('Tentando extrair do markdown');
+          console.log('Tentando extrair do markdown (Parse inicial falhou)');
           return extractJsonFromMarkdown(content);
         }
       };
@@ -221,65 +239,69 @@ const callWebhook = async (theme: string) => {
 
       // Sanitiza os dados antes da validação
       console.log('Dados antes da sanitização:', data);
-      const sanitizeData = (data: Record<string, unknown>) => {
-        console.log('Iniciando sanitização dos dados');
-        
-        // Garante que os campos base existam
-        data = {
-          title: String(data?.title || ''),
-          objectives: Array.isArray(data?.objectives) ? data.objectives.map(String) : [],
-          modules: Array.isArray(data?.modules) ? data.modules : [],
-          glossary: Array.isArray(data?.glossary) ? data.glossary : [],
-          study_tips: Array.isArray(data?.study_tips) ? data.study_tips.map(String) : [],
-          final_summary: String(data?.final_summary || '')
-        };
+      const sanitizeData = (rawData: unknown): MiniCourse => {
+        // Cast inicial para any ou Partial para permitir manipulação flexível
+        const data = rawData as Partial<MiniCourse>;
 
-        // Valida campos obrigatórios
+        console.log('Iniciando sanitização dos dados');
+
+        // Validação Tolerante (Soft Validation)
         if (typeof data.title !== 'string' || !data.title.trim()) {
-          throw new Error('Campo title é obrigatório');
+          console.warn('Título ausente, usando padrão.');
+          data.title = 'Curso Gerado (Título Indisponível)';
         }
 
-        // Normaliza os módulos
-        data.modules = (data.modules as Array<Partial<Module>>).map((module: Partial<Module>, index: number) => {
-          console.log(`Sanitizando módulo ${index + 1}/${(data.modules as Array<unknown>).length}`);
-          console.log(`Módulo ${index + 1}: ${module?.module_title || 'Sem título'}`);
-          
+        // Garante arrays mesmo que venham nulos ou errados
+        data.objectives = Array.isArray(data.objectives) ? data.objectives.map(String) : [];
+        data.glossary = Array.isArray(data.glossary) ? data.glossary : [];
+        data.study_tips = Array.isArray(data.study_tips) ? data.study_tips.map(String) : [];
+        data.final_summary = String(data.final_summary || 'Resumo não disponível.');
+
+        // Normaliza os módulos com Defaults
+        if (!Array.isArray(data.modules)) {
+          data.modules = [];
+        }
+
+        // Se após normalizar não houver módulos, cria um dummy para não quebrar a UI
+        if (data.modules.length === 0) {
+          data.modules = [{
+            module_title: "Introdução",
+            introduction: "Conteúdo sendo gerado...",
+            lessons: [],
+            quiz: []
+          }];
+        }
+
+        data.modules = data.modules.map((module: Module, index: number) => {
+
           // Normaliza campos do módulo
-          const normalizedModule = {
-            module_title: String(module?.module_title || ''),
+          const normalizedModule: Module = {
+            module_title: String(module?.module_title || `Módulo ${index + 1}`),
             introduction: String(module?.introduction || ''),
-            lessons: Array.isArray(module?.lessons) ? module.lessons.map((lesson: Partial<Lesson>) => ({
-              lesson_title: String(lesson?.lesson_title || ''),
-              content: String(lesson?.content || ''),
+            lessons: Array.isArray(module?.lessons) ? module.lessons.map((lesson: Lesson) => ({
+              lesson_title: String(lesson?.lesson_title || 'Lição'),
+              content: String(lesson?.content || 'Conteúdo indisponível.'),
               example: String(lesson?.example || '')
             })) : [],
             quiz: Array.isArray(module?.quiz) ? module.quiz : []
           };
 
           // Normaliza o quiz
-          normalizedModule.quiz = normalizedModule.quiz.map((q: Partial<QuizQuestion>, qIndex: number) => {
-            const options = Array.isArray(q?.options) 
-              ? q.options.map((opt: unknown, i: number) => {
-                  const option = String(opt).trim();
-                  // Garante que a opção está no formato correto (A), B), etc)
-                  if (!option.startsWith(String.fromCharCode(65 + i) + ')')) {
-                    return `${String.fromCharCode(65 + i)}) ${option.replace(/^[A-D]\)\s*/, '')}`;
-                  }
-                  return option;
-                })
-              : [];
+          normalizedModule.quiz = normalizedModule.quiz.map((q: QuizQuestion) => {
+            const options = Array.isArray(q?.options)
+              ? q.options.map(String)
+              : ["A) Opção 1", "B) Opção 2"]; // Fallback safe options
 
-            // Verifica se a resposta está no formato correto
-            let answer = String(q?.answer || '');
-            if (!/^[A-D]$/.test(answer)) {
-              console.warn(`Resposta do quiz ${qIndex + 1} malformada, tentando corrigir:`, answer);
-              // Tenta extrair a letra da resposta
-              const match = answer.match(/[A-D]/);
-              answer = match ? match[0] : 'A';
+            let answer = String(q?.answer || 'A').trim().toUpperCase();
+            // Pega apenas a primeira letra se vier texto longo parecendo "A) resposta"
+            if (answer.length > 1 && /^[A-D]\)/.test(answer)) {
+              answer = answer[0];
             }
+            // Se ainda assim não for A, B, C ou D, força A
+            if (!/^[A-D]$/.test(answer)) answer = 'A';
 
             return {
-              question: String(q?.question || ''),
+              question: String(q?.question || 'Questão sem enunciado'),
               options,
               answer,
               explanation: String(q?.explanation || '')
@@ -289,14 +311,8 @@ const callWebhook = async (theme: string) => {
           return normalizedModule;
         });
 
-        // Normaliza o glossário
-        data.glossary = (data.glossary as Array<Partial<GlossaryItem>>).map((item: Partial<GlossaryItem>) => ({
-          term: String(item?.term || ''),
-          definition: String(item?.definition || '')
-        }));
-
-        console.log('Sanitização concluída com sucesso');
-        return data;
+        // Ignora validação estrita final e retorna o dado sanitizado
+        return data as MiniCourse;
       };
 
       data = sanitizeData(data);
@@ -310,7 +326,7 @@ const callWebhook = async (theme: string) => {
       console.log(`- Total de questões: ${(data.modules as Module[]).reduce((acc: number, m: { quiz: QuizQuestion[] }) => acc + m.quiz.length, 0)}`);
       console.log(`- Termos no glossário: ${Array.isArray(data.glossary) ? data.glossary.length : 0}`);
       console.log(`- Dicas de estudo: ${Array.isArray(data.study_tips) ? data.study_tips.length : 0}`);
-      return validateResponse(data);
+      return validateResponse(data as unknown as Record<string, unknown>);
     } catch (parseError) {
       console.error('Erro ao parsear JSON:', parseError);
       console.error('Texto recebido:', text);
@@ -343,7 +359,7 @@ export async function POST(request: Request) {
     try {
       const data = await callWebhook(theme);
       console.log('Curso gerado com sucesso');
-      
+
       return NextResponse.json(data);
     } catch (apiError) {
       console.error('Erro ao processar resposta da API:', apiError);

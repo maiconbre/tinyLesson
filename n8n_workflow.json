@@ -1,0 +1,107 @@
+{
+    "name": "TinyLesson Generator Agent",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "aa3fe884-9c0e-43f6-8c50-8b0665551351",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "id": "7d953285-b223-4556-9817-458142750a95",
+            "name": "Webhook",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1,
+            "position": [
+                820,
+                360
+            ]
+        },
+        {
+            "parameters": {
+                "options": {}
+            },
+            "id": "e8a932d4-0618-4712-8758-c00657904359",
+            "name": "Respond to Webhook",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1,
+            "position": [
+                1460,
+                360
+            ]
+        },
+        {
+            "parameters": {
+                "model": "gpt-4o",
+                "options": {
+                    "temperature": 0.4
+                }
+            },
+            "id": "a1b2c3d4-e5f6-4718-9817-458142750a97",
+            "name": "OpenAI Chat Model",
+            "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+            "typeVersion": 1,
+            "position": [
+                1180,
+                580
+            ],
+            "credentials": {
+                "openAiApi": {
+                    "id": "YOUR_OPENAI_CREDENTIAL_ID",
+                    "name": "OpenAI account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "options": {
+                    "systemMessage": "Você é um especialista pedagógico e criador de cursos online. Sua tarefa é criar um mini-curso completo e detalhado sobre o tema fornecido pelo usuário.\n\nREGRA CRÍTICA: Sua resposta deve ser ESTRITAMENTE um objeto JSON válido. Não inclua texto introdutório, não use markdown (```json), apenas retorne o JSON cru.\n\nO formato do JSON deve seguir EXATAMENTE esta estrutura:\n\n{\n  \"title\": \"Título Criativo do Curso\",\n  \"objectives\": [\n    \"Objetivo de aprendizado 1\",\n    \"Objetivo 2\",\n    \"Objetivo 3\"\n  ],\n  \"modules\": [\n    {\n      \"module_title\": \"Título do Módulo 1\",\n      \"introduction\": \"Breve introdução do módulo.\",\n      \"lessons\": [\n        {\n          \"lesson_title\": \"Título da Lição\",\n          \"content\": \"Conteúdo detalhado e educativo da lição. Use parágrafos claros.\",\n          \"example\": \"Um exemplo prático ou estudo de caso relacionado.\"\n        },\n        {\n          \"lesson_title\": \"Título da Lição 2\",\n          \"content\": \"Conteúdo...\",\n          \"example\": \"Exemplo...\"\n        }\n      ],\n      \"quiz\": [\n        {\n          \"question\": \"Pergunta sobre o conteúdo do módulo?\",\n          \"options\": [\n            \"A) Opção incorreta\",\n            \"B) Opção correta\",\n            \"C) Opção incorreta\",\n            \"D) Opção incorreta\"\n          ],\n          \"answer\": \"B\",\n          \"explanation\": \"Explicação do porquê a resposta B está correta.\"\n        }\n      ]\n    }\n  ],\n  \"glossary\": [\n    {\n      \"term\": \"Termo Técnico 1\",\n      \"definition\": \"Definição clara do termo.\"\n    }\n  ],\n  \"study_tips\": [\n    \"Dica de estudo 1\",\n    \"Dica 2\"\n  ],\n  \"final_summary\": \"Resumo encorajador e conclusão do curso.\"\n}\n\nREQUISITOS DE CONTEÚDO:\n1. Crie pelo menos 3 módulos.\n2. Cada módulo deve ter pelo menos 2 lições.\n3. Cada módulo deve ter pelo menos 2 perguntas de quiz.\n4. As opções do quiz devem SEMPRE começar com \"A)\", \"B)\", \"C)\", \"D)\".\n5. O campo 'answer' deve ser APENAS a letra da resposta correta (\"A\", \"B\", \"C\" ou \"D\").\n6. O conteúdo deve ser didático, profissional e engajador.\n7. O idioma deve ser Português do Brasil.\n"
+                },
+                "text": "={{ $json.body.theme }}"
+            },
+            "id": "f5e6d7c8-9012-4345-8758-c00657904358",
+            "name": "AI Agent",
+            "type": "@n8n/n8n-nodes-langchain.agent",
+            "typeVersion": 1.6,
+            "position": [
+                1140,
+                360
+            ]
+        }
+    ],
+    "connections": {
+        "Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "AI Agent",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "OpenAI Chat Model": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "AI Agent",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "AI Agent": {
+            "main": [
+                [
+                    {
+                        "node": "Respond to Webhook",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

@@ -56,7 +56,6 @@ export interface UseMiniCourseReturn {
   actions: UseMiniCourseActions;
 }
 
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export function useMiniCourse(): UseMiniCourseReturn {
   const [data, setData] = useState<MiniCourse | null>(null);
@@ -79,24 +78,32 @@ export function useMiniCourse(): UseMiniCourseReturn {
       setError(null);
       setData(null);
       setGenerationProgress(0); // Reset progress
-      
-      // Simulate gradual progress
-      const maxSimulatedProgress = 96;
-      const totalDuration = 45000; // 45 seconds in ms
-      const intervalTime = 1000; // Update every 1 second
-      const incrementValue = maxSimulatedProgress / (totalDuration / intervalTime);
 
-      progressInterval = setInterval(() => {
+      // Simulação de progresso não-linear baseada no comportamento típico de LLMs
+      const updateProgress = () => {
         setGenerationProgress(prev => {
-          if (prev >= maxSimulatedProgress) {
-            if (progressInterval) clearInterval(progressInterval); 
-            progressInterval = undefined;
-            return maxSimulatedProgress;
+          // Fase 1: Início rápido (0-30% em ~2s) - Conexão e envio
+          if (prev < 30) {
+            return prev + 2;
           }
-          const nextProgress = prev + incrementValue;
-          return nextProgress >= maxSimulatedProgress ? maxSimulatedProgress : parseFloat(nextProgress.toFixed(2));
+          // Fase 2: Processamento (30-70% em ~10s) - Thinking/Reasoning
+          if (prev < 70) {
+            return prev + 0.8;
+          }
+          // Fase 3: Geração Longa (70-90% em ~30s) - Streaming tokens
+          if (prev < 90) {
+            return prev + 0.2;
+          }
+          // Fase 4: Finalização (90-95% lentíssimo) - JSON parsing/validating
+          if (prev < 95) {
+            return prev + 0.05;
+          }
+          return prev;
         });
-      }, intervalTime);
+      };
+
+      // Atualiza a cada 300ms para suavidade
+      progressInterval = setInterval(updateProgress, 300);
 
       const response = await fetch('/api/mini-course', {
         method: 'POST',
@@ -162,7 +169,7 @@ export function useMiniCourse(): UseMiniCourseReturn {
     generateCourse,
     nextLesson: () => {
       if (!data) return;
-      
+
       setProgress(prev => {
         const currentModule = data.modules[prev.currentModule];
         if (!currentModule) return prev;
@@ -217,7 +224,7 @@ export function useMiniCourse(): UseMiniCourseReturn {
     goToModule: (moduleId: number) => {
       if (!data) return;
       if (moduleId < -1 || (moduleId >= data.modules.length && moduleId !== -1)) return;
-      
+
       setProgress(prev => ({
         ...prev,
         currentModule: moduleId,

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
 
-const webhookUrl = 'https://n8n.targetweb.tech/webhook/f3cdcfd1-71d8-46fb-b6cd-c855cdd8e1db';
+const webhookUrl = 'https://n8n.targetweb.tech/webhook-test/tiny-leson';
 
 export async function POST(request: Request) {
   try {

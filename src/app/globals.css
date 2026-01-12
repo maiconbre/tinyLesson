@@ -1,96 +1,205 @@
 @import "tailwindcss";
 
-:root {
-  --color-primary: #6b5ecd; /* Azul meio roxo para modo dark */
-  --color-secondary: #4a3fb5; /* Tom mais escuro de azul roxo para modo dark */
-  --color-background: #ffffff;
-  --color-foreground: #171717;
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* MODO LIGHT (Papel + Laranja) */
+    --background: 0 0% 100%;
+    --foreground: 20 10% 20%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 20 10% 20%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 10% 20%;
+
+    --primary: 25 90% 60%;
+    /* Laranja Vibrante */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 35 90% 90%;
+    /* Laranja Muito Claro */
+    --secondary-foreground: 25 90% 40%;
+
+    --muted: 0 0% 96%;
+    --muted-foreground: 20 5% 45%;
+
+    --accent: 35 50% 96%;
+    --accent-foreground: 25 90% 40%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 25 90% 60%;
+    --radius: 0.75rem;
+
+    /* NATIVE BACKGROUND VARS (Light) */
+    --bg-color-base: #FDFBF7;
+    /* Creme Quente (Papel) */
+    /* Noise texture (Base64 SVG) */
+    --bg-image-base: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.2'/%3E%3C/svg%3E"), radial-gradient(circle at center, transparent 0%, rgba(200, 180, 150, 0.15) 100%);
+    --bg-blend: multiply;
+    --bg-size: 200px 200px, cover;
+    /* Tile noise for performance */
+  }
+
+  .dark {
+    /* MODO DARK (Stars + Roxo) */
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 263.4 70% 50.4%;
+    /* Roxo Clássico */
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 263.4 30% 20%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 263.4 70% 50.4%;
+
+    /* NATIVE BACKGROUND VARS (Discovery Galaxy) */
+    --bg-color-base: #050508;
+    /* Mais escuro que Zinc 950 */
+    /* Galaxy Center Gradient */
+    --bg-image-base:
+      radial-gradient(circle at 50% 30%, rgba(120, 50, 255, 0.15) 0%, transparent 40%),
+      /* Núcleo Roxo */
+      radial-gradient(circle at 80% 10%, rgba(90, 70, 255, 0.08) 0%, transparent 30%),
+      /* Brilho Azulado */
+      radial-gradient(circle at 20% 80%, rgba(168, 85, 247, 0.05) 0%, transparent 30%);
+    /* Brilho Secundário */
+    --bg-blend: screen;
+    --bg-size: cover;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    color: hsl(var(--foreground));
+    /* NATIVE CSS BACKGROUND IMPLEMENTATION */
+    background-color: var(--bg-color-base);
+    background-image: var(--bg-image-base);
+    background-attachment: fixed;
+    background-blend-mode: var(--bg-blend);
+    background-size: var(--bg-size);
+    transition: background-color 0.8s ease, background-image 0.8s ease;
+  }
+
+  /* Força cursor pointer */
+  button,
+  [role="button"],
+  a,
+  input[type="submit"],
+  input[type="button"] {
+    cursor: pointer !important;
+  }
 }
 
-/* Estilos para botões */
-button {
-  background-color: var(--color-primary);
-  color: white;
-  border: none;
-  border-radius: 5px;
-  padding: 10px 15px;
-  cursor: pointer;
-  transition: background-color 0.3s, transform 0.2s;
-}
-
-button:hover {
-  background-color: var(--color-secondary);
-  transform: scale(1.05);
-}
-
-/* Estilos para links */
-a {
-  color: var(--color-primary);
-  text-decoration: none;
-  transition: color 0.3s;
-}
-
-a:hover {
-  color: var(--color-secondary);
-}
-
-body.light {
-  --background: #fff8e7; /* Tom branco amarelado */
-  --foreground: #4a4a4a; /* Texto escuro acinzentado */
-  --color-primary: #ffb366; /* Amarelo laranjado pastel */
-  --color-secondary: #ffa07a; /* Tom mais claro de laranja pastel */
-}
-
-body.dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-}
-
-/* Animação sutil para o fundo */
 @keyframes subtlePulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
   }
+
   50% {
-    opacity: 0.8; /* Ajuste a opacidade mínima conforme desejado */
+    opacity: 0.8;
   }
 }
 
 .animate-subtle-pulse {
-  animation: subtlePulse 15s ease-in-out infinite; /* Duração longa para sutileza */
+  animation: subtlePulse 15s ease-in-out infinite;
 }
 
-/* Nova animação para gradiente pulsante */
-@keyframes pulse-gradient-bg {
-  0%, 100% {
-    background-size: 150% 150%; /* Tamanho inicial do gradiente */
-    opacity: 0.6; /* Opacidade inicial/final aumentada */
+/* --- STAR FIELD ANIMATIONS --- */
+@keyframes twinkle {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
   }
+
+  40% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+
   50% {
-    background-size: 300% 300%; /* Tamanho expandido no meio da animação - mais pronunciado */
-    opacity: 0.9; /* Opacidade máxima no meio - aumentada */
+    opacity: 0.8;
+    transform: scale(1.2);
+  }
+
+  60% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(0.8);
   }
 }
 
-.animate-pulse-gradient-bg {
-  /* Aplica a animação com duração reduzida para ser mais perceptível */
-  animation: pulse-gradient-bg 8s ease-in-out infinite;
-  /* Garante que o gradiente esteja centralizado e cubra toda a área */
-  background-position: center center !important;
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+/* Utility classes for stars (applied in page.tsx) */
+.star-field {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
+  display: none;
+  /* Hidden by default (Light Mode) */
+}
+
+/* Only show in Dark Mode */
+.dark .star-field {
+  display: block;
+}
+
+.star {
+  position: absolute;
+  background: white;
+  border-radius: 50%;
+  opacity: 0;
+  animation: twinkle var(--duration, 3s) infinite ease-in-out;
+  animation-delay: var(--delay, 0s);
+  box-shadow: 0 0 4px 1px rgba(255, 255, 255, 0.4);
+  /* Glow sutil */
 }

@@ -1,48 +1,331 @@
 'use client';
 
-import React from 'react';
-import Link from 'next/link'; // Import Link for navigation
-import { motion } from 'framer-motion';
-import { Button } from "@/components/ui/button"; // Import Shadcn Button
+import React, { useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useMiniCourse } from '@/hooks/useMiniCourse';
+import { CourseModule } from '@/components/CourseModule';
+import { PdfButton } from '@/components/PdfGenerator';
+import { Rating } from '@/components/Rating';
+import { SearchInput } from '@/components/SearchInput';
+import { useCourseStore } from '@/store/useCourseStore';
+import { Progress } from "@/components/ui/progress";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle, Sparkles, Zap, BookOpen, BadgeCheck } from "lucide-react";
 
-export default function LandingPage() {
+// Variantes de Animação
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { type: "spring", stiffness: 100 }
+  }
+};
+
+// Componente de Estrelas Otimizado (Hydration Safe - Ultra Slow)
+// Componente de Estrelas Otimizado (Hydration Safe - Ultra Slow / Realístico)
+const StarField = () => {
+  // Configuração: 30 estrelas.
+  // Duração extrema (25s a 40s).
+  // Com o keyframe de 35%-65% (30% do tempo), a estrela fica visível por ~8s a 12s.
+  // O fade-in/out leva ~10s cada.
+  const stars = Array.from({ length: 30 }).map((_, i) => ({
+    id: i,
+    top: `${(i * 19) % 100}%`,
+    left: `${(i * 29) % 100}%`,
+    size: (i % 5 === 0) ? 3 : 2,
+    duration: `${25 + (i % 15)}s`,
+    delay: `${(i * 3)}s`
+  }));
+
   return (
-    // Main container set to relative to position the background absolutely within it
-    // Changed overflow-x-hidden to overflow-hidden
-    <div className="relative text-foreground transition-colors duration-300 overflow-hidden flex items-center justify-center min-h-[calc(100vh-80px)]">
+    <div className="star-field">
+      {stars.map((star) => (
+        <div
+          key={star.id}
+          className="star"
+          style={{
+            top: star.top,
+            left: star.left,
+            width: star.size,
+            height: star.size,
+            '--duration': star.duration,
+            '--delay': star.delay,
+          } as React.CSSProperties}
+        />
+      ))}
+    </div>
+  );
+};
 
-      {/* Animated Background Element */}
-      <div
-        className="absolute inset-0 -z-10 bg-gradient-radial from-primary/30 via-background to-background animate-pulse-gradient-bg"
-        style={{ backgroundPosition: 'center center' }} // Center the gradient
-      />
+export default function Home() {
+  const [theme, setTheme] = useState('');
+  const [showRating, setShowRating] = useState(false);
+  const { data, loading, error, progress, generationProgress, actions } = useMiniCourse();
+  const rateTheme = useCourseStore(state => state.rateTheme);
+  const resultsRef = useRef<HTMLDivElement>(null); // Changed to useRef
 
-      {/* Content container - already had relative z-10, which is good */}
-      <div className="relative z-10 text-center px-4 sm:px-6">
+  const handleSubmit = () => {
+    if (theme.trim()) {
+      actions.generateCourse(theme);
+    }
+  };
+
+  // Auto-scroll when data loads
+  React.useEffect(() => {
+    if (data && !loading && resultsRef.current) {
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  }, [data, loading]);
+
+  return (
+    <div className="min-h-screen text-foreground transition-colors duration-300 relative overflow-x-hidden">
+
+      {/* Container de Estrelas (Só aparece no Dark via CSS) */}
+      <StarField />
+
+      <main className="container mx-auto px-4 py-8 sm:py-12 md:py-20 relative z-10">
+
+        {/* Header / Hero Section */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="max-w-3xl mx-auto"
+          className="text-center max-w-4xl mx-auto mb-12 sm:mb-16"
         >
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-primary mb-6 sm:mb-8">
-            Crie Mini Cursos Instantâneos com IA
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6 border border-primary/20 animate-fade-in">
+            <Sparkles className="w-4 h-4" />
+            <span>IA Generativa para Educação</span>
+          </div>
+
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-tight mb-6 text-orange-600 dark:text-purple-500 animate-fade-in">
+            O Que Você Quer <br className="hidden sm:block" /> Aprender Hoje?
           </h1>
-          <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground mb-8 sm:mb-12">
-            Transforme qualquer tópico em um mini curso estruturado e pronto para estudo em questão de segundos. Totalmente grátis e inovador.
+
+          <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            Crie guias práticos e diretos ao ponto sobre qualquer assunto.<br />
+            Sem enrolação, apenas o que você precisa saber.
           </p>
-          <Link href="/generate" passHref>
-            <Button asChild size="lg" className="text-lg px-8 py-6">
-              <motion.div // motion.div can be used with asChild for animations if needed
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Experimente Grátis
-              </motion.div>
-            </Button>
-          </Link>
         </motion.div>
-      </div>
+
+        {/* Área de Pesquisa */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="max-w-2xl mx-auto mb-12"
+        >
+          <Card className="border-primary/20 shadow-2xl shadow-primary/5 bg-card/60 backdrop-blur-xl">
+            <CardContent className="p-2 sm:p-4">
+              <SearchInput
+                value={theme}
+                onChange={setTheme}
+                onSubmit={handleSubmit}
+                loading={loading}
+                placeholder="Ex: Marketing Digital, Python, Nutrição..."
+              />
+            </CardContent>
+          </Card>
+
+          {/* Estado de Carregamento */}
+          <AnimatePresence>
+            {loading && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mt-6"
+              >
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm text-muted-foreground font-medium">
+                    <span className="flex items-center gap-2">
+                      <Zap className="w-4 h-4 text-yellow-500 animate-pulse" />
+                      <span className="animate-pulse">Criando seu guia sobre &quot;{theme}&quot;...</span>
+                    </span>
+                    <span>{Math.round(generationProgress)}%</span>
+                  </div>
+                  <Progress value={generationProgress} className="h-2 w-full bg-muted overflow-hidden rounded-full transition-all duration-300 ease-out" />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Mensagem de Erro */}
+          <AnimatePresence>
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="mt-4"
+              >
+                <Alert variant="destructive" className="border-red-500/50 bg-red-500/10 text-red-500">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription className="font-medium">{error}</AlertDescription>
+                </Alert>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+
+        {/* Conteúdo do Curso Gerado */}
+        <div ref={resultsRef}>
+          <AnimatePresence>
+            {data && !loading && (
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+                className="space-y-8 max-w-5xl mx-auto"
+              >
+
+                {/* Título de Confirmação do Tema (logo abaixo do campo de pesquisa) */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="text-center mb-10 pb-6 border-b border-border/40"
+                >
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-xs sm:text-sm font-bold uppercase tracking-widest mb-3 border border-green-500/20">
+                    <BadgeCheck className="w-4 h-4" />
+                    <span>Guia Completo Gerado</span>
+                  </div>
+
+                  <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-orange-600 dark:text-purple-400">
+                    {data.title}
+                  </h2>
+                </motion.div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  {/* Coluna Principal (Módulos) */}
+                  <motion.div
+                    className="md:col-span-2 space-y-6"
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                  >
+                    {data.modules.map((module, index) => (
+                      <motion.div key={index} variants={itemVariants}>
+                        <CourseModule
+                          module={module}
+                          index={index}
+                          isActive={index === progress.currentModule}
+                          onSelect={() => {
+                            if (index === progress.currentModule) {
+                              actions.goToModule(-1);
+                            } else {
+                              actions.goToModule(index);
+                            }
+                          }}
+                          completedLessons={progress.completedLessons}
+                          onLessonComplete={(lessonId: number) => actions.markLessonComplete(index, lessonId)}
+                        />
+                      </motion.div>
+                    ))}
+
+                    {/* Resumo Final - Animação individual */}
+                    {data.final_summary && (
+                      <motion.div variants={itemVariants}>
+                        <Card className="border-primary/10 bg-gradient-to-br from-card to-primary/5">
+                          <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-xl text-primary">
+                              <BookOpen className="w-5 h-5" /> Conclusão
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <p className="text-muted-foreground leading-relaxed">{data.final_summary}</p>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    )}
+                  </motion.div>
+
+                  {/* Sidebar (Objetivos, Glossário, Dicas) - Animação sutil */}
+                  <motion.div
+                    className="space-y-6"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3, duration: 0.5 }}
+                  >
+                    {/* Objetivos */}
+                    <Card className="border-border/50 bg-card/50 backdrop-blur-sm sticky top-24 shadow-sm hover:shadow-md transition-shadow">
+                      <CardHeader>
+                        <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                          🎯 Objetivos
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-3">
+                          {data.objectives.map((obj, i) => (
+                            <li key={i} className="text-sm text-muted-foreground flex gap-2">
+                              <span className="text-primary mt-1">•</span> {obj}
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+
+                    {/* Glossário */}
+                    {data.glossary.length > 0 && (
+                      <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
+                        <CardHeader>
+                          <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                            📚 Glossário
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          {data.glossary.map((item, i) => (
+                            <div key={i} className="text-sm border-b border-border/50 last:border-0 pb-2 last:pb-0">
+                              <span className="font-bold text-foreground block">{item.term}</span>
+                              <span className="text-muted-foreground">{item.definition}</span>
+                            </div>
+                          ))}
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Ações */}
+                    <div className="flex flex-col gap-3 pt-4">
+                      <PdfButton courseData={data} />
+                      <Button variant="outline" onClick={() => setShowRating(true)} className="w-full border-primary/20 hover:bg-primary/5 hover:border-primary/40 transition-all duration-300">
+                        ⭐ Avaliar Conteúdo
+                      </Button>
+                    </div>
+                  </motion.div>
+                </div>
+
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Modal de Avaliação */}
+        <AnimatePresence>
+          {showRating && (
+            <Rating
+              onRate={(score) => {
+                rateTheme(theme, score);
+                setShowRating(false);
+              }}
+              onClose={() => setShowRating(false)}
+            />
+          )}
+        </AnimatePresence>
+      </main>
     </div>
   );
 }

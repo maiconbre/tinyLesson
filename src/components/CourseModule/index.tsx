@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   CheckCircle,
   BookOpen,
   Lightbulb,
-  ChevronDown
 } from 'lucide-react'; // Updated icons to lucide-react
 import { Module } from '@/hooks/useMiniCourse';
 import {
@@ -40,10 +39,10 @@ export const CourseModule: React.FC<CourseModuleProps> = ({
   const accordionValue = isActive ? `module-${index}` : undefined;
 
   return (
-    <Accordion 
-      type="single" 
-      collapsible 
-      value={accordionValue} 
+    <Accordion
+      type="single"
+      collapsible
+      value={accordionValue}
       onValueChange={(value) => {
         // If the accordion is being opened/closed, call onSelect
         // This handles both clicking the trigger and programmatic changes if any
@@ -56,11 +55,11 @@ export const CourseModule: React.FC<CourseModuleProps> = ({
       className="mb-4 w-full"
     >
       <AccordionItem value={`module-${index}`} className="border rounded-lg shadow-md bg-card">
-        <AccordionTrigger 
-          onClick={(e) => {
+        <AccordionTrigger
+          onClick={() => {
             // Prevent AccordionTrigger's default onClick from interfering if we manually call onSelect
             // e.preventDefault(); // This might be too aggressive, test behavior
-            onSelect(); 
+            onSelect();
           }}
           className={`w-full flex items-center justify-between p-4 rounded-t-lg
                      transition-colors duration-300 group
@@ -136,17 +135,26 @@ export const CourseModule: React.FC<CourseModuleProps> = ({
                             {question.options.map((option, optionIndex) => {
                               const isAnswered = showExplanations[qIndex];
                               const isSelectedByUser = selectedAnswers[qIndex] === optionIndex;
-                              const isCorrectAnswer = question.answer === option;
-                              let optionSpecificClass = 'hover:bg-muted/50'; // Default state before answering or for unselected incorrect answers
+
+                              // Logic Fix: Convert 'A','B','C' answer to index (0,1,2)
+                              // Safe fallback if answer is not a letter: try exact match
+                              const answerLetter = (question.answer || '').trim().toUpperCase();
+                              const correctIndex = answerLetter.length === 1
+                                ? answerLetter.charCodeAt(0) - 65
+                                : -1;
+
+                              // Check if this option index matches the correct index OR if the text matches exactly
+                              const isCorrectAnswer = correctIndex === optionIndex || question.answer === option;
+
+                              let optionSpecificClass = 'hover:bg-muted/50';
 
                               if (isAnswered) {
                                 if (isCorrectAnswer) {
-                                  optionSpecificClass = 'border bg-green-500/20 border-green-500 text-green-700 hover:bg-green-500/30'; // Correct answer
+                                  optionSpecificClass = 'border bg-green-500/20 border-green-500 text-green-700 hover:bg-green-500/30';
                                 } else if (isSelectedByUser) {
-                                  optionSpecificClass = 'border bg-red-500/20 border-red-500 text-red-700 hover:bg-red-500/30'; // Selected by user and incorrect
+                                  optionSpecificClass = 'border bg-red-500/20 border-red-500 text-red-700 hover:bg-red-500/30';
                                 } else {
-                                  // Incorrect option, not selected by user - remains 'hover:bg-muted/50'
-                                  optionSpecificClass = 'hover:bg-muted/50 text-muted-foreground'; // Explicitly set for clarity, maybe slightly more muted
+                                  optionSpecificClass = 'hover:bg-muted/50 text-muted-foreground';
                                 }
                               }
 
@@ -158,7 +166,7 @@ export const CourseModule: React.FC<CourseModuleProps> = ({
                                     setSelectedAnswers(prev => ({ ...prev, [qIndex]: optionIndex }));
                                     setShowExplanations(prev => ({ ...prev, [qIndex]: true }));
                                   }}
-                                  disabled={showExplanations[qIndex]} // Options become disabled after an answer
+                                  disabled={showExplanations[qIndex]}
                                   className={`w-full justify-start h-auto py-2 px-3 text-sm text-left ${optionSpecificClass}`}
                                 >
                                   {option}
@@ -174,7 +182,7 @@ export const CourseModule: React.FC<CourseModuleProps> = ({
                               >
                                 <p className="text-muted-foreground">
                                   <span className="font-semibold text-primary">
-                                    Explicação:{' '}
+                                    Explicação (Alternativa {question.answer}):{' '}
                                   </span>
                                   {question.explanation}
                                 </p>
