@@ -90,7 +90,7 @@ O formato do JSON deve seguir EXATAMENTE esta estrutura:
 }
 
 REQUISITOS DE CONTEÚDO:
-1. Crie pelo menos 3 módulos.
+1. Crie pelo menos 5 módulos.
 2. Cada módulo deve ter pelo menos 2 lições.
 3. Cada módulo deve ter pelo menos 2 perguntas de quiz.
 4. As opções do quiz devem SEMPRE começar com "A)", "B)", "C)", "D)".
