@@ -52,6 +52,7 @@ export interface UseMiniCourseReturn {
     currentLesson: number;
     completedLessons: Set<string>;
   };
+  generationProgress: number; // Add generationProgress here
   actions: UseMiniCourseActions;
 }
 
@@ -61,6 +62,7 @@ export function useMiniCourse(): UseMiniCourseReturn {
   const [data, setData] = useState<MiniCourse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [generationProgress, setGenerationProgress] = useState(0); // Initialize generationProgress state
   const [progress, setProgress] = useState({
     currentModule: 0,
     currentLesson: 0,
@@ -70,13 +72,31 @@ export function useMiniCourse(): UseMiniCourseReturn {
   const generateCourse = async (theme: string) => {
     if (!theme) return;
 
+    let progressInterval: ReturnType<typeof setInterval> | undefined; // Variable to hold the interval ID
+
     try {
       setLoading(true);
       setError(null);
       setData(null);
+      setGenerationProgress(0); // Reset progress
       
-      // Adiciona um pequeno delay antes da chamada para garantir que os estados foram atualizados
-      await delay(100);
+      // Simulate gradual progress
+      const maxSimulatedProgress = 96;
+      const totalDuration = 45000; // 45 seconds in ms
+      const intervalTime = 1000; // Update every 1 second
+      const incrementValue = maxSimulatedProgress / (totalDuration / intervalTime);
+
+      progressInterval = setInterval(() => {
+        setGenerationProgress(prev => {
+          if (prev >= maxSimulatedProgress) {
+            if (progressInterval) clearInterval(progressInterval); 
+            progressInterval = undefined;
+            return maxSimulatedProgress;
+          }
+          const nextProgress = prev + incrementValue;
+          return nextProgress >= maxSimulatedProgress ? maxSimulatedProgress : parseFloat(nextProgress.toFixed(2));
+        });
+      }, intervalTime);
 
       const response = await fetch('/api/mini-course', {
         method: 'POST',
@@ -86,6 +106,10 @@ export function useMiniCourse(): UseMiniCourseReturn {
         body: JSON.stringify({ theme }),
       });
 
+      if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = undefined;
+      }
       const responseData = await response.json();
 
       if (!response.ok) {
@@ -97,6 +121,7 @@ export function useMiniCourse(): UseMiniCourseReturn {
       }
 
       setData(responseData);
+      setGenerationProgress(100); // Generation complete
       setProgress({
         currentModule: 0,
         currentLesson: 0,
@@ -104,11 +129,21 @@ export function useMiniCourse(): UseMiniCourseReturn {
       });
 
     } catch (err) {
+      if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = undefined;
+      }
       const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
       console.error('Erro ao gerar curso:', errorMessage);
       setError(errorMessage);
       setData(null);
+      setGenerationProgress(100); // Also set to 100 on error to stop progress bar
     } finally {
+      // Ensure interval is cleared if it somehow wasn't before
+      if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = undefined;
+      }
       setLoading(false);
     }
   };
@@ -209,5 +244,12 @@ export function useMiniCourse(): UseMiniCourseReturn {
     }
   };
 
-  return { data, loading, error, progress, actions };
+  return {
+    data,
+    loading,
+    error,
+    progress,
+    generationProgress, // Return generationProgress
+    actions,
+  };
 }

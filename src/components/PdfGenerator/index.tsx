@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { Button } from '@/components/ui/button'; // Import Shadcn Button
+import { Loader2, Download } from 'lucide-react'; // Import Loader2 and Download icons
 import { jsPDF } from 'jspdf';
 import { MiniCourse } from '@/hooks/useMiniCourse';
 
@@ -185,7 +187,7 @@ export const generatePdf = async ({
   }
 };
 
-export const PdfButton: React.FC<{ courseData: MiniCourse }> = ({ courseData }) => {
+export const PdfButton: React.FC<{ courseData: MiniCourse; className?: string }> = ({ courseData, className }) => {
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handleGenerate = async () => {
@@ -197,21 +199,24 @@ export const PdfButton: React.FC<{ courseData: MiniCourse }> = ({ courseData }) 
   };
 
   return (
-    <button
+    <Button
       onClick={handleGenerate}
       disabled={isGenerating}
-      className="px-4 py-2 bg-background/50 text-foreground rounded-lg hover:bg-background/80
-                disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2
-                dark:bg-dark-800/50 dark:text-gold-400 dark:hover:bg-dark-800/80"
+      variant="outline" // Example variant, can be adjusted
+      size="sm" // Example size
+      className={className} // Allow passing custom classes
     >
       {isGenerating ? (
         <>
-          <span className="w-4 h-4 border-2 border-gold-400 border-t-transparent rounded-full animate-spin" />
-          <span>Gerando PDF...</span>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Gerando...
         </>
       ) : (
-        <span>Baixar PDF</span>
+        <>
+          <Download className="mr-2 h-4 w-4" />
+          Baixar PDF
+        </>
       )}
-    </button>
+    </Button>
   );
 };

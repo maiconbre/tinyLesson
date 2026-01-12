@@ -2,8 +2,8 @@
 
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { ThemeButton } from "@/components/ThemeButton";
-import { useThemeStore } from "@/store/useThemeStore";
+import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,17 +21,24 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { theme } = useThemeStore();
-
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased ${theme} flex flex-col min-h-screen`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen relative`}
       >
-        <ThemeButton />
-        <main className="flex-grow">
-          {children}
-        </main>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {/* Background Gradient with Animation */}
+          <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-gold-900/20 via-dark-900 to-dark-900 dark:from-gold-900/5 dark:via-dark-900 dark:to-dark-900 -z-10 animate-subtle-pulse" /> {/* Added animation class */}
+          <ThemeToggle />
+          <main className="flex-grow relative z-10"> {/* Added relative z-10 */}
+            {children}
+          </main>
+        </ThemeProvider>
       </body>
     </html>
   );

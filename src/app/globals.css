@@ -61,3 +61,36 @@ body.dark {
   --background: #0a0a0a;
   --foreground: #ededed;
 }
+
+/* Animação sutil para o fundo */
+@keyframes subtlePulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8; /* Ajuste a opacidade mínima conforme desejado */
+  }
+}
+
+.animate-subtle-pulse {
+  animation: subtlePulse 15s ease-in-out infinite; /* Duração longa para sutileza */
+}
+
+/* Nova animação para gradiente pulsante */
+@keyframes pulse-gradient-bg {
+  0%, 100% {
+    background-size: 150% 150%; /* Tamanho inicial do gradiente */
+    opacity: 0.6; /* Opacidade inicial/final aumentada */
+  }
+  50% {
+    background-size: 300% 300%; /* Tamanho expandido no meio da animação - mais pronunciado */
+    opacity: 0.9; /* Opacidade máxima no meio - aumentada */
+  }
+}
+
+.animate-pulse-gradient-bg {
+  /* Aplica a animação com duração reduzida para ser mais perceptível */
+  animation: pulse-gradient-bg 8s ease-in-out infinite;
+  /* Garante que o gradiente esteja centralizado e cubra toda a área */
+  background-position: center center !important;
+}

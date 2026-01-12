@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ClockIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { ClockIcon,Search, Loader2, Send } from 'lucide-react'; // Import Send and Loader2 from lucide-react
 import { useCourseStore } from '@/store/useCourseStore';
+import { Input } from '@/components/ui/input'; // Import Shadcn Input
+import { Button } from '@/components/ui/button'; // Import Shadcn Button
 
 interface SearchInputProps {
   value: string;
@@ -17,7 +19,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
   loading = false,
 }) => {
   const [, setIsFocused] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLDivElement>(null); // Changed ref type to HTMLDivElement for the outer div
   const history = useCourseStore(state => state.history);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
@@ -32,9 +34,9 @@ export const SearchInput: React.FC<SearchInputProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => { // Added type for event
     if (e.key === 'Enter') {
-      e.preventDefault(); // Previne o comportamento padrão do Enter
+      e.preventDefault(); 
       if (value.trim()) {
         onSubmit();
         setShowSuggestions(false);
@@ -45,14 +47,16 @@ export const SearchInput: React.FC<SearchInputProps> = ({
   const handleSuggestionClick = (suggestion: string) => {
     onChange(suggestion);
     setShowSuggestions(false);
-    onSubmit();
+    // Delay onSubmit to allow state update if needed, or call directly
+    // For simplicity, calling directly here. Consider if a micro-delay is beneficial.
+    onSubmit(); 
   };
 
   return (
     <div className="relative w-full" ref={inputRef}>
-      <div className="relative flex flex-col sm:flex-row gap-2 sm:gap-4">
-        <div className="relative flex-1">
-          <input
+      <div className="relative flex flex-col sm:flex-row gap-2 sm:gap-4 items-center">
+        <div className="relative flex-1 w-full">
+          <Input // Use Shadcn Input
             type="text"
             value={value}
             onChange={(e) => onChange(e.target.value)}
@@ -62,72 +66,58 @@ export const SearchInput: React.FC<SearchInputProps> = ({
             }}
             onKeyDown={handleKeyDown}
             placeholder="Digite o tema ..."
-          className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-background border-2 border-foreground/30 rounded-xl
-                   text-foreground placeholder-foreground/50 text-sm sm:text-base
-                   focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20
-                   transition-all duration-300"
-        />
-        <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-foreground/50">
-          <MagnifyingGlassIcon className="h-5 w-5" />
-        </div>
-      </div>
-      
-      <button
-        onClick={onSubmit}
-        disabled={!value.trim() || loading}
-        className="w-full sm:w-auto px-4 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-gold-600 to-gold-500 rounded-xl
-                   text-dark-900 font-semibold text-sm sm:text-base
-                   hover:from-gold-500 hover:to-gold-400
-                   transform hover:scale-[1.02] transition-all duration-300
-                   focus:outline-none focus:ring-2 focus:ring-gold-500/50
-                   disabled:opacity-50 disabled:cursor-not-allowed
-                   disabled:hover:scale-100
-                   flex items-center justify-center gap-2 sm:gap-3"
-      >
-        {loading ? (
-          <>
-            <svg className="animate-spin h-5 w-5 text-dark-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <span>Gerando...</span>
-          </>
-        ) : (
-          <>
-            <span>Gerar Mini Curso</span>
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-            </svg>
-          </>
-        )}
-      </button>
-    </div>
-
-    {/* Sugestões de Temas Recentes */}
-    <AnimatePresence>
-      {showSuggestions && history.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          className="absolute z-10 w-full mt-2 py-2 bg-background border border-foreground/30 rounded-lg shadow-xl max-h-60 overflow-y-auto"
-        >
-          <h3 className="px-4 py-2 text-sm font-medium text-gold-400">Temas Recentes</h3>
-          <div>
-            {history.map((theme, index) => (
-              <button
-                key={index}
-                onClick={() => handleSuggestionClick(theme)}
-                className="w-full px-3 sm:px-4 py-2 flex items-center space-x-2 sm:space-x-3 text-left hover:bg-background/80 transition-colors text-foreground text-sm sm:text-base"
-              >
-                <ClockIcon className="h-4 w-4 text-gold-500/50" />
-                <span>{theme}</span>
-              </button>
-            ))}
+            className="w-full text-base" // Adjusted classes for Shadcn Input
+          />
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+            <Search className="h-5 w-5" />
           </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  </div>
+        </div>
+        
+        <Button // Use Shadcn Button
+          onClick={onSubmit}
+          disabled={!value.trim() || loading}
+          className="w-full sm:w-auto text-base" // Adjusted classes for Shadcn Button
+        >
+          {loading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <span>Gerando...</span>
+            </>
+          ) : (
+            <>
+              <span>Gerar Mini Curso</span>
+              <Send className="ml-2 h-4 w-4" />
+            </>
+          )}
+        </Button>
+      </div>
+
+      {/* Sugestões de Temas Recentes */}
+      <AnimatePresence>
+        {showSuggestions && history.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="absolute z-10 w-full mt-2 py-2 bg-card border rounded-md shadow-lg max-h-60 overflow-y-auto"
+          >
+            <h3 className="px-4 py-2 text-sm font-medium text-primary">Temas Recentes</h3>
+            <div>
+              {history.map((theme, index) => (
+                <Button // Can also use a simple button or a styled div if preferred
+                  variant="ghost"
+                  key={index}
+                  onClick={() => handleSuggestionClick(theme)}
+                  className="w-full px-3 sm:px-4 py-2 flex items-center space-x-2 sm:space-x-3 text-left justify-start h-auto text-sm sm:text-base"
+                >
+                  <ClockIcon className="h-4 w-4 text-muted-foreground" />
+                  <span>{theme}</span>
+                </Button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 };
