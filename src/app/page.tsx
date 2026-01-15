@@ -9,11 +9,11 @@ import { PdfButton } from '@/components/PdfGenerator';
 import { Rating } from '@/components/Rating';
 import { SearchInput } from '@/components/SearchInput';
 import { useCourseStore } from '@/store/useCourseStore';
-import { Progress } from "@/components/ui/progress";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Sparkles, Zap, BookOpen, BadgeCheck } from "lucide-react";
+import { AlertCircle, Sparkles, BookOpen, BadgeCheck } from "lucide-react";
 import { GenerationLoader } from '@/components/GenerationLoader';
 
 // Variantes de Animação
@@ -302,7 +302,6 @@ export default function Home() {
                           index={index}
                           isActive={index === progress.currentModule}
                           onSelect={() => {
-                            // Prevent selection if locked (though Accordion logic should handle it better, explicit check here is good too)
                             if (index <= progress.maxUnlockedModule) {
                               if (index === progress.currentModule) {
                                 actions.goToModule(-1);
@@ -311,8 +310,6 @@ export default function Home() {
                               }
                             }
                           }}
-                          completedLessons={progress.completedLessons}
-                          onLessonComplete={(lessonId: number) => actions.markLessonComplete(index, lessonId)}
                           isLocked={index > progress.maxUnlockedModule}
                           onModuleComplete={() => actions.unlockNextModule(index)}
                           onQuestionComplete={(qIndex: number) => actions.markQuestionComplete(index, qIndex)}
@@ -474,6 +471,23 @@ export default function Home() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Footer */}
+        <footer className="mt-16 py-6 border-t border-border/30">
+          <div className="text-center text-xs text-muted-foreground">
+            <p>
+              © {new Date().getFullYear()} • Criado por{' '}
+              <a
+                href="https://www.targetweb.tech"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-primary transition-colors underline-offset-2 hover:underline"
+              >
+                Target Web
+              </a>
+            </p>
+          </div>
+        </footer>
       </main >
     </div >
   );
