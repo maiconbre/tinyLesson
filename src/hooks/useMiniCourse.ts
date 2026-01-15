@@ -40,6 +40,8 @@ export interface UseMiniCourseActions {
   previousLesson: () => void;
   goToModule: (moduleId: number) => void;
   markLessonComplete: (moduleId: number, lessonId: number) => void;
+  markQuestionComplete: (moduleId: number, questionIndex: number) => void; // Nova ação
+  unlockNextModule: (currentModuleId: number) => void;
   reset: () => void;
 }
 
@@ -51,8 +53,10 @@ export interface UseMiniCourseReturn {
     currentModule: number;
     currentLesson: number;
     completedLessons: Set<string>;
+    completedQuestions: Set<string>; // Nova propriedade
+    maxUnlockedModule: number;
   };
-  generationProgress: number; // Add generationProgress here
+  generationProgress: number;
   actions: UseMiniCourseActions;
 }
 
@@ -61,92 +65,153 @@ export function useMiniCourse(): UseMiniCourseReturn {
   const [data, setData] = useState<MiniCourse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [generationProgress, setGenerationProgress] = useState(0); // Initialize generationProgress state
+  const [generationProgress, setGenerationProgress] = useState(0);
   const [progress, setProgress] = useState({
     currentModule: 0,
     currentLesson: 0,
-    completedLessons: new Set<string>()
+    completedLessons: new Set<string>(),
+    completedQuestions: new Set<string>(), // Init
+    maxUnlockedModule: 0
   });
 
   const generateCourse = async (theme: string) => {
     if (!theme) return;
 
-    let progressInterval: ReturnType<typeof setInterval> | undefined; // Variable to hold the interval ID
+    let progressInterval: ReturnType<typeof setInterval> | undefined;
 
     try {
       setLoading(true);
       setError(null);
       setData(null);
-      setGenerationProgress(0); // Reset progress
+      setGenerationProgress(0); // Reset progress start
+
+      // Variável mutável para controle de velocidade dentro do intervalo
+      let currentSpeedMultiplier = 1;
+      let targetProgress = 99; // Target to reach asymptotically
 
       // Simulação de progresso não-linear baseada no comportamento típico de LLMs
       const updateProgress = () => {
         setGenerationProgress(prev => {
-          // Fase 1: Início rápido (0-30% em ~2s) - Conexão e envio
+          // Se chegamos no target, paramos
+          if (prev >= targetProgress) return prev;
+
+          let increment = 0;
+
+          // Fase 1: Início rápido (0-30%)
           if (prev < 30) {
-            return prev + 2;
+            increment = 2;
           }
-          // Fase 2: Processamento (30-70% em ~10s) - Thinking/Reasoning
-          if (prev < 70) {
-            return prev + 0.8;
+          // Fase 2: Processamento (30-60%)
+          else if (prev < 60) {
+            increment = 0.8;
           }
-          // Fase 3: Geração Longa (70-90% em ~30s) - Streaming tokens
-          if (prev < 90) {
-            return prev + 0.2;
+          // Fase 3: Geração Longa (60-85%)
+          else if (prev < 85) {
+            increment = 0.4;
           }
-          // Fase 4: Finalização (90-95% lentíssimo) - JSON parsing/validating
-          if (prev < 95) {
-            return prev + 0.05;
+          // Fase 4: Finalização / Retry (85-99%) - Asymptotic approach
+          else {
+            // Decaimento exponencial: Quanto mais perto do fim, menor o passo
+            const distance = targetProgress - prev;
+            increment = Math.max(0.02, distance * 0.05);
           }
-          return prev;
+
+          // Aplica multiplicador de velocidade (usado no retry para "correr atrás")
+          return Math.min(targetProgress, prev + (increment * currentSpeedMultiplier));
         });
       };
 
-      // Atualiza a cada 300ms para suavidade
+      // Atualiza a cada 300ms 
       progressInterval = setInterval(updateProgress, 300);
 
-      const response = await fetch('/api/mini-course', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ theme }),
-      });
+      // TENTATIVA E ERRO (RETRY LOOP)
+      const MAX_RETRIES = 2;
+      let lastErrorIgnoringRetry = null;
 
-      if (progressInterval) {
-        clearInterval(progressInterval);
-        progressInterval = undefined;
+      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        try {
+
+          // SE FOR RETRY (Tentativa 2+), acelera o progresso visual para dar feedback "vivo"
+          if (attempt > 1) {
+            // Pula o progresso se estiver muito atrasado (para parecer que já avançou)
+            setGenerationProgress(prev => Math.max(prev, 65));
+            // Aumenta velocidade para chegar nos 90% logo
+            currentSpeedMultiplier = 3.0; // 3x mais rápido
+          }
+
+          // eslint-disable-next-line
+          const response = await fetch('/api/mini-course', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ theme }),
+          });
+
+          const responseData = await response.json();
+
+          if (!response.ok) {
+            throw new Error(responseData.error || 'Falha ao gerar o mini curso');
+          }
+
+          if (!responseData.title || !Array.isArray(responseData.modules)) {
+            throw new Error('Resposta inválida do servidor');
+          }
+
+          // SUCESSO!
+          if (progressInterval) {
+            clearInterval(progressInterval);
+            progressInterval = undefined;
+          }
+
+          setData(responseData);
+          setGenerationProgress(100);
+
+          setProgress({
+            currentModule: 0,
+            currentLesson: 0,
+            completedLessons: new Set(),
+            completedQuestions: new Set(),
+            maxUnlockedModule: 0
+          });
+
+          return; // Sai da função com sucesso
+
+        } catch (err: unknown) {
+          console.warn(`Tentativa ${attempt} falhou:`, err);
+          lastErrorIgnoringRetry = err;
+
+          if (attempt === MAX_RETRIES) {
+            throw err; // Lança erro final
+          }
+
+          // Se vai tentar de novo, garantimos que o progresso continue rodando
+          // e na próxima iteração do loop, o "if (attempt > 1)" vai acelerar as coisas
+        }
       }
-      const responseData = await response.json();
-
-      if (!response.ok) {
-        throw new Error(responseData.error || 'Falha ao gerar o mini curso');
-      }
-
-      if (!responseData.title || !Array.isArray(responseData.modules)) {
-        throw new Error('Resposta inválida do servidor');
-      }
-
-      setData(responseData);
-      setGenerationProgress(100); // Generation complete
-      setProgress({
-        currentModule: 0,
-        currentLesson: 0,
-        completedLessons: new Set()
-      });
 
     } catch (err) {
       if (progressInterval) {
         clearInterval(progressInterval);
         progressInterval = undefined;
       }
-      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
-      console.error('Erro ao gerar curso:', errorMessage);
-      setError(errorMessage);
+      const rawError = err instanceof Error ? err.message : 'Erro desconhecido';
+      console.error('Erro final ao gerar curso:', rawError);
+
+      let friendlyMessage = 'Ocorreu um erro inesperado. Por favor, tente novamente.';
+
+      if (rawError.includes('Resposta vazia') || rawError.includes('JSON')) {
+        friendlyMessage = 'Não conseguimos gerar o curso para este tema. Tente usar palavras-chave diferentes ou ser mais específico.';
+      } else if (rawError.includes('Falha ao gerar') || rawError.includes('inválida')) {
+        friendlyMessage = 'Houve um problema na comunicação com nossa IA. Tente novamente em alguns segundos.';
+      } else if (rawError.includes('Network') || rawError.includes('fetch')) {
+        friendlyMessage = 'Verifique sua conexão com a internet e tente novamente.';
+      }
+
+      setError(friendlyMessage);
       setData(null);
-      setGenerationProgress(100); // Also set to 100 on error to stop progress bar
+      setGenerationProgress(100); // Finaliza visualmente com erro
     } finally {
-      // Ensure interval is cleared if it somehow wasn't before
       if (progressInterval) {
         clearInterval(progressInterval);
         progressInterval = undefined;
@@ -170,57 +235,34 @@ export function useMiniCourse(): UseMiniCourseReturn {
     nextLesson: () => {
       if (!data) return;
 
-      setProgress(prev => {
-        const currentModule = data.modules[prev.currentModule];
-        if (!currentModule) return prev;
-
-        // Se está na última lição do módulo atual
-        if (prev.currentLesson === currentModule.lessons.length - 1) {
-          // Se há próximo módulo
-          if (prev.currentModule < data.modules.length - 1) {
-            return {
-              ...prev,
-              currentModule: prev.currentModule + 1,
-              currentLesson: 0
-            };
-          }
-          return prev; // Está no final do curso
-        }
-
-        // Avança para próxima lição
-        return {
+      const currentModuleData = data.modules[progress.currentModule];
+      if (progress.currentLesson < currentModuleData.lessons.length - 1) {
+        setProgress(prev => ({ ...prev, currentLesson: prev.currentLesson + 1 }));
+      } else if (progress.currentModule < data.modules.length - 1) {
+        // Only move to next module if unlocked? Or assume standard nav allows it if unlocked.
+        // Actually this is just standard prev/next nav logic.
+        // We defer locking checks to the UI mostly, or strict checks here.
+        // For now keep standard.
+        setProgress(prev => ({
           ...prev,
-          currentLesson: prev.currentLesson + 1
-        };
-      });
+          currentModule: prev.currentModule + 1,
+          currentLesson: 0
+        }));
+      }
     },
-
     previousLesson: () => {
       if (!data) return;
-
-      setProgress(prev => {
-        // Se está na primeira lição do módulo atual
-        if (prev.currentLesson === 0) {
-          // Se há módulo anterior
-          if (prev.currentModule > 0) {
-            const previousModule = data.modules[prev.currentModule - 1];
-            return {
-              ...prev,
-              currentModule: prev.currentModule - 1,
-              currentLesson: previousModule.lessons.length - 1
-            };
-          }
-          return prev; // Está no início do curso
-        }
-
-        // Volta para lição anterior
-        return {
+      if (progress.currentLesson > 0) {
+        setProgress(prev => ({ ...prev, currentLesson: prev.currentLesson - 1 }));
+      } else if (progress.currentModule > 0) {
+        const prevModule = data.modules[progress.currentModule - 1];
+        setProgress(prev => ({
           ...prev,
-          currentLesson: prev.currentLesson - 1
-        };
-      });
+          currentModule: progress.currentModule - 1,
+          currentLesson: prevModule.lessons.length - 1
+        }));
+      }
     },
-
     goToModule: (moduleId: number) => {
       if (!data) return;
       if (moduleId < -1 || (moduleId >= data.modules.length && moduleId !== -1)) return;
@@ -239,11 +281,35 @@ export function useMiniCourse(): UseMiniCourseReturn {
       }));
     },
 
+    markQuestionComplete: (moduleId: number, questionIndex: number) => {
+      setProgress(prev => ({
+        ...prev,
+        completedQuestions: new Set(prev.completedQuestions || new Set()).add(`${moduleId}-${questionIndex}`)
+      }));
+    },
+
+    unlockNextModule: (currentModuleId: number) => {
+      setProgress(prev => {
+        const nextModule = currentModuleId + 1;
+        // Só atualiza se o próximo módulo ainda não estiver desbloqueado, e se for um módulo válido (embora o check de limite seja feito na UI via modules.length, é bom garantir)
+        // Mas como não temos data.modules aqui dentro facilmente sem plumbs, apenas confiamos no ID sequencial.
+        if (nextModule > prev.maxUnlockedModule) {
+          return {
+            ...prev,
+            maxUnlockedModule: nextModule
+          };
+        }
+        return prev;
+      });
+    },
+
     reset: () => {
       setProgress({
         currentModule: 0,
         currentLesson: 0,
-        completedLessons: new Set()
+        completedLessons: new Set(),
+        completedQuestions: new Set(),
+        maxUnlockedModule: 0
       });
       if (data?.title) {
         localStorage.removeItem(`course-progress-${data.title}`);
