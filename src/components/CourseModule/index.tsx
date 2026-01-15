@@ -35,11 +35,9 @@ interface CourseModuleProps {
   index: number;
   isActive: boolean;
   onSelect: () => void;
-  completedLessons: Set<string>;
-  onLessonComplete: (lessonId: number) => void;
   isLocked: boolean;
   onModuleComplete: () => void;
-  onQuestionComplete: (qIndex: number) => void; // New prop
+  onQuestionComplete: (qIndex: number) => void;
 }
 
 
@@ -48,8 +46,6 @@ export const CourseModule: React.FC<CourseModuleProps> = ({
   index,
   isActive,
   onSelect,
-  completedLessons,
-  onLessonComplete,
   isLocked,
   onModuleComplete,
   onQuestionComplete,
@@ -60,7 +56,6 @@ export const CourseModule: React.FC<CourseModuleProps> = ({
   const [currentQuestionIndexForPopup, setCurrentQuestionIndexForPopup] = useState<number | null>(null);
   const [revealedAnswers, setRevealedAnswers] = useState<Record<number, boolean>>({});
   const [questionErrors, setQuestionErrors] = useState<Record<number, boolean>>({}); // Track if a question has been errored
-  const [retryCounts, setRetryCounts] = useState<Record<number, number>>({}); // Track retries just in case
 
   const accordionValue = isActive ? `module-${index}` : undefined;
 
@@ -93,7 +88,7 @@ export const CourseModule: React.FC<CourseModuleProps> = ({
   }, [selectedAnswers, module.quiz, onModuleComplete]);
 
 
-  const handleOptionClick = (qIndex: number, optionIndex: number, question: any) => {
+  const handleOptionClick = (qIndex: number, optionIndex: number, question: { answer?: string; options: string[]; question: string; explanation: string }) => {
     // Determine correctness
     const answerLetter = (question.answer || '').trim().toUpperCase();
     const correctIndex = answerLetter.length === 1

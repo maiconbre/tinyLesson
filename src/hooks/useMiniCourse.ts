@@ -87,7 +87,7 @@ export function useMiniCourse(): UseMiniCourseReturn {
 
       // Variável mutável para controle de velocidade dentro do intervalo
       let currentSpeedMultiplier = 1;
-      let targetProgress = 99; // Target to reach asymptotically
+      const targetProgress = 99; // Target to reach asymptotically
 
       // Simulação de progresso não-linear baseada no comportamento típico de LLMs
       const updateProgress = () => {
@@ -126,7 +126,6 @@ export function useMiniCourse(): UseMiniCourseReturn {
 
       // TENTATIVA E ERRO (RETRY LOOP)
       const MAX_RETRIES = 2;
-      let lastErrorIgnoringRetry = null;
 
       for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
@@ -139,7 +138,7 @@ export function useMiniCourse(): UseMiniCourseReturn {
             currentSpeedMultiplier = 3.0; // 3x mais rápido
           }
 
-          // eslint-disable-next-line
+
           const response = await fetch('/api/mini-course', {
             method: 'POST',
             headers: {
@@ -179,7 +178,6 @@ export function useMiniCourse(): UseMiniCourseReturn {
 
         } catch (err: unknown) {
           console.warn(`Tentativa ${attempt} falhou:`, err);
-          lastErrorIgnoringRetry = err;
 
           if (attempt === MAX_RETRIES) {
             throw err; // Lança erro final
