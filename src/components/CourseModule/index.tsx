@@ -35,9 +35,11 @@ interface CourseModuleProps {
   index: number;
   isActive: boolean;
   onSelect: () => void;
-  isLocked: boolean;
-  onModuleComplete: () => void;
-  onQuestionComplete: (qIndex: number) => void;
+  isLocked?: boolean;
+  onModuleComplete?: () => void;
+  onQuestionComplete?: (qIndex: number) => void;
+  completedLessons?: Set<string>;
+  onLessonComplete?: (lessonId: number) => void;
 }
 
 
@@ -46,9 +48,11 @@ export const CourseModule: React.FC<CourseModuleProps> = ({
   index,
   isActive,
   onSelect,
-  isLocked,
+  isLocked = false,
   onModuleComplete,
   onQuestionComplete,
+  completedLessons,
+  onLessonComplete,
 }) => {
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
   const [showExplanations, setShowExplanations] = useState<Record<number, boolean>>({});
@@ -83,7 +87,7 @@ export const CourseModule: React.FC<CourseModuleProps> = ({
     }, 0);
 
     if (correctCount === totalQuestions) {
-      onModuleComplete();
+      onModuleComplete?.();
     }
   }, [selectedAnswers, module.quiz, onModuleComplete]);
 
@@ -100,7 +104,7 @@ export const CourseModule: React.FC<CourseModuleProps> = ({
       setSelectedAnswers(prev => ({ ...prev, [qIndex]: optionIndex }));
       // Clear error state if it was there
       setQuestionErrors(prev => ({ ...prev, [qIndex]: false }));
-      onQuestionComplete(qIndex); // Mark question as complete for global progress
+      onQuestionComplete?.(qIndex); // Mark question as complete for global progress
     } else {
       // Wrong answer
       // Mark as selected (will show red)
@@ -136,7 +140,7 @@ export const CourseModule: React.FC<CourseModuleProps> = ({
       setShowErrorPopup(false);
       // Remove error state for this question since we solved it
       setQuestionErrors(prev => ({ ...prev, [currentQuestionIndexForPopup]: false }));
-      onQuestionComplete(currentQuestionIndexForPopup); // Mark question as complete for global progress (cheating counts!)
+      onQuestionComplete?.(currentQuestionIndexForPopup); // Mark question as complete for global progress (cheating counts!)
     }
   };
 
