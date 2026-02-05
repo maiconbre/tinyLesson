@@ -156,7 +156,7 @@ export default function Home() {
           </div>
 
           <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-tight mb-6 text-orange-600 dark:text-purple-500 animate-fade-in">
-            O Que Você Quer <br className="hidden sm:block" /> Aprender Hoje?
+            O que você quer <br className="hidden sm:block" /> Aprender Hoje?
           </h1>
 
           <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
