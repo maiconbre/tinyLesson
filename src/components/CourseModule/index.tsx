@@ -243,34 +243,64 @@ export const CourseModule: React.FC<CourseModuleProps> = ({
                   animate="visible"
                   variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
                 >
-                  {module.lessons.map((lesson, lessonIndex) => (
-                    <motion.div key={lessonIndex} variants={listItemVariants}>
-                      <Card className="border transition-all duration-300 bg-card hover:border-primary/30">
-                        <CardHeader className="pb-2">
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                            <CardTitle className="text-md sm:text-lg font-bold flex items-center gap-2">
-                              <span className="text-primary/80">#{(lessonIndex + 1).toString().padStart(2, '0')}</span>
-                              {lesson.lesson_title}
-                            </CardTitle>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-sm sm:text-base text-muted-foreground mb-4 leading-relaxed">
-                            {lesson.content}
-                          </p>
-                          {lesson.example && (
-                            <div className="mt-4 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-xl relative overflow-hidden">
-                              <div className="absolute top-0 left-0 w-1 h-full bg-yellow-400/50" />
-                              <h6 className="text-xs font-bold text-yellow-600 dark:text-yellow-400 mb-2 uppercase tracking-wide flex items-center gap-1">
-                                💡 Exemplo Prático
-                              </h6>
-                              <p className="text-sm italic text-muted-foreground/90">{lesson.example}</p>
+                  {module.lessons.map((lesson, lessonIndex) => {
+                    const isLessonCompleted = completedLessons?.has(`${index}-${lessonIndex}`);
+
+                    return (
+                      <motion.div key={lessonIndex} variants={listItemVariants}>
+                        <Card className={`border transition-all duration-300 bg-card ${isLessonCompleted ? 'border-green-500/50 bg-green-500/5' : 'hover:border-primary/30'}`}>
+                          <CardHeader className="pb-2">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                              <CardTitle className="text-md sm:text-lg font-bold flex items-center gap-2">
+                                <span className={isLessonCompleted ? "text-green-600 dark:text-green-400" : "text-primary/80"}>
+                                  #{(lessonIndex + 1).toString().padStart(2, '0')}
+                                </span>
+                                {lesson.lesson_title}
+                                {isLessonCompleted && (
+                                  <span className="text-xs font-medium px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full border border-green-200 dark:border-green-800">
+                                    Concluída
+                                  </span>
+                                )}
+                              </CardTitle>
                             </div>
-                          )}
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  ))}
+                          </CardHeader>
+                          <CardContent>
+                            <p className="text-sm sm:text-base text-muted-foreground mb-4 leading-relaxed">
+                              {lesson.content}
+                            </p>
+                            {lesson.example && (
+                              <div className="mt-4 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-xl relative overflow-hidden">
+                                <div className="absolute top-0 left-0 w-1 h-full bg-yellow-400/50" />
+                                <h6 className="text-xs font-bold text-yellow-600 dark:text-yellow-400 mb-2 uppercase tracking-wide flex items-center gap-1">
+                                  💡 Exemplo Prático
+                                </h6>
+                                <p className="text-sm italic text-muted-foreground/90">{lesson.example}</p>
+                              </div>
+                            )}
+
+                            {/* Botão de Conclusão */}
+                            <div className="mt-4 flex justify-end">
+                              <Button
+                                variant={isLessonCompleted ? "outline" : "secondary"}
+                                size="sm"
+                                onClick={() => onLessonComplete?.(lessonIndex)}
+                                disabled={isLessonCompleted}
+                                className={isLessonCompleted ? "text-green-600 border-green-200 hover:bg-green-50" : ""}
+                              >
+                                {isLessonCompleted ? (
+                                  <>
+                                    <span className="mr-2">✓</span> Lida
+                                  </>
+                                ) : (
+                                  "Marcar como lida"
+                                )}
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    );
+                  })}
                 </motion.div>
               </div>
 
