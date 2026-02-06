@@ -279,7 +279,8 @@ export const CourseModule: React.FC<CourseModuleProps> = ({
                             )}
 
                             {/* Botão de Conclusão */}
-                            <div className="mt-4 flex justify-end">
+                            {/* Botão de Conclusão */}
+                            <div className="mt-4 flex justify-end hidden">
                               <Button
                                 variant={isLessonCompleted ? "outline" : "secondary"}
                                 size="sm"

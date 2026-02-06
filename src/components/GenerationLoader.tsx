@@ -47,10 +47,7 @@ export const GenerationLoader: React.FC<GenerationLoaderProps> = ({ progress }) 
                     </div>
                 </div>
 
-                {/* Percentage */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-sm font-bold text-foreground mt-16">{Math.round(progress)}%</span>
-                </div>
+
             </div>
 
             {/* Status Text */}
