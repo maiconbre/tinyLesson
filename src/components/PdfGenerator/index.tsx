@@ -111,7 +111,7 @@ export const generatePdf = async ({
 
         module.quiz.forEach((question, qIndex) => {
           checkPageBreak(40);
-          
+
           // Questão
           pdf.setFont("helvetica", "normal");
           yPosition = addWrappedText(`${qIndex + 1}. ${question.question}`, yPosition, smallSize);
@@ -136,7 +136,7 @@ export const generatePdf = async ({
     // Glossário
     if (courseData.glossary.length > 0) {
       checkPageBreak(40);
-      
+
       pdf.setFont("helvetica", "bold");
       yPosition = addWrappedText("Glossário", yPosition, headingSize);
       yPosition += 10;
@@ -180,8 +180,12 @@ export const generatePdf = async ({
 
     // Salva o PDF
     pdf.save(`${courseData.title.toLowerCase().replace(/\s+/g, '-')}.pdf`);
-  } catch (error) {
-    console.error('Erro ao gerar PDF:', error);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('Erro ao gerar PDF:', error.message);
+    } else {
+      console.error('Erro desconhecido ao gerar PDF:', error);
+    }
   } finally {
     onGenerateEnd?.();
   }

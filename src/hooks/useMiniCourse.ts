@@ -188,7 +188,7 @@ export function useMiniCourse(): UseMiniCourseReturn {
         }
       }
 
-    } catch (err) {
+    } catch (err: unknown) {
       if (progressInterval) {
         clearInterval(progressInterval);
         progressInterval = undefined;

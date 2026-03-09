@@ -8,6 +8,8 @@ import { CourseModule } from '@/components/CourseModule';
 import { PdfButton } from '@/components/PdfGenerator';
 import { Rating } from '@/components/Rating';
 import { SearchInput } from '@/components/SearchInput';
+import { StarField } from '@/components/StarField';
+import { CompletionModal } from '@/components/CompletionModal';
 import { useCourseStore } from '@/store/useCourseStore';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,36 +38,6 @@ const itemVariants = {
   }
 };
 
-// Componente de Estrelas Otimizado (Hydration Safe - Ultra Slow)
-const StarField = () => {
-  const stars = Array.from({ length: 30 }).map((_, i) => ({
-    id: i,
-    top: `${(i * 19) % 100}%`,
-    left: `${(i * 29) % 100}%`,
-    size: (i % 5 === 0) ? 3 : 2,
-    duration: `${25 + (i % 15)}s`,
-    delay: `${(i * 3)}s`
-  }));
-
-  return (
-    <div className="star-field">
-      {stars.map((star) => (
-        <div
-          key={star.id}
-          className="star"
-          style={{
-            top: star.top,
-            left: star.left,
-            width: star.size,
-            height: star.size,
-            '--duration': star.duration,
-            '--delay': star.delay,
-          } as React.CSSProperties}
-        />
-      ))}
-    </div>
-  );
-};
 
 export default function Home() {
   const [theme, setTheme] = useState('');
@@ -427,50 +399,11 @@ export default function Home() {
         </AnimatePresence>
 
         {/* COMPLETION MODAL */}
-        <AnimatePresence>
-          {showCompletionModal && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-            >
-              <motion.div
-                initial={{ scale: 0.8, y: 20 }}
-                animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0.8, y: 20 }}
-                className="bg-card border-2 border-primary/50 p-8 rounded-2xl shadow-2xl max-w-md w-full text-center relative overflow-hidden"
-              >
-                {/* Background Glow */}
-                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
-
-                <motion.div
-                  animate={{ rotate: [0, 10, -10, 0] }}
-                  transition={{ repeat: Infinity, duration: 2 }}
-                  className="text-6xl mb-4"
-                >
-                  🏆
-                </motion.div>
-
-                <h2 className="text-3xl font-black text-primary mb-2">Curso Concluído!</h2>
-                <p className="text-muted-foreground mb-6">
-                  Parabéns! Você dominou o guia sobre <span className="text-foreground font-bold">{data?.title}</span>.
-                </p>
-
-                <div className="flex flex-col gap-3">
-                  {data && <PdfButton courseData={data} />}
-                  <Button
-                    size="lg"
-                    className="w-full font-bold text-lg animate-pulse hover:animate-none"
-                    onClick={() => setShowCompletionModal(false)}
-                  >
-                    Continuar Aprendendo
-                  </Button>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <CompletionModal
+          show={showCompletionModal}
+          onClose={() => setShowCompletionModal(false)}
+          data={data}
+        />
 
         {/* Footer */}
         <footer className="mt-16 py-6 border-t border-border/30">
