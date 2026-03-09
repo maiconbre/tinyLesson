@@ -61,6 +61,21 @@ export interface UseMiniCourseReturn {
 }
 
 
+/**
+ * Provides stateful logic for generating, persisting, and navigating a mini-course.
+ *
+ * Manages course data, visual generation progress (with a simulated non-linear/progressive loader and retry acceleration),
+ * user progress (current module/lesson, completed lessons/questions, unlocked modules), persistence to localStorage,
+ * and action helpers for generating a course, navigation, marking completions, unlocking modules, and resetting progress.
+ *
+ * @returns An object with:
+ * - `data`: the generated `MiniCourse` or `null`
+ * - `loading`: whether a generation request is in progress
+ * - `error`: a user-friendly error message or `null`
+ * - `progress`: current module/lesson state, completed sets, and `maxUnlockedModule`
+ * - `generationProgress`: visual percentage (0–100) representing generation progress
+ * - `actions`: methods to generate a course and manipulate navigation and completion state
+ */
 export function useMiniCourse(): UseMiniCourseReturn {
   const [data, setData] = useState<MiniCourse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -188,7 +203,7 @@ export function useMiniCourse(): UseMiniCourseReturn {
         }
       }
 
-    } catch (err) {
+    } catch (err: unknown) {
       if (progressInterval) {
         clearInterval(progressInterval);
         progressInterval = undefined;
