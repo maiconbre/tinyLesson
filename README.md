@@ -1,121 +1,108 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=nextdotjs" />
+  <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" />
+  <img src="https://img.shields.io/badge/Clean%20Architecture-Solid-4CAF50?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Vitest-Testing-6E9F18?style=for-the-badge&logo=vitest&logoColor=white" />
   <img src="https://img.shields.io/badge/n8n-AI%20Backend-FF6D5A?style=for-the-badge&logo=n8n&logoColor=white" />
-  <img src="https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=for-the-badge&logo=tailwindcss&logoColor=white" />
-  <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" />
 </p>
 
 # TinyLesson 📚✨
 
 ### Plataforma de Micro-Learning com Inteligência Artificial
 
-O **TinyLesson** gera mini-cursos completos e interativos sobre qualquer tema em segundos. O usuário digita um tópico, a IA cria um guia estruturado com módulos, quizzes e glossário — tudo com um design premium e responsivo.
+O **TinyLesson** gera mini-cursos completos e interativos sobre qualquer tema em segundos. O projeto funciona sob uma arquitetura robusta e escalável, concebida para demonstrar a aplicação estrita de princípios **SOLID** e do padrão **Clean Architecture** aplicados ao ecossistema moderno do Next.js (App Router).
 
-> 💡 **Conceito:** O front-end em **Next.js** envia o tema para uma **API Route** interna, que repassa a requisição para um workflow no **n8n**. O n8n orquestra uma LLM (GPT-4o / Claude) que retorna o conteúdo do curso em JSON estruturado, renderizado instantaneamente na interface.
+## 🏗️ Arquitetura e Engenharia de Software
+
+Este projeto foi intencionalmente refatorado para servir como um **estudo de caso técnico de alto nível**, separando totalmente as regras de negócio das tecnologias externas (Frameworks, ORMs e Serviços de IA).
+
+### Camadas da Clean Architecture no Projeto:
+
+1. **🟡 Domain Layer (`src/domain`)**
+   - O coração da plataforma. Totalmente agnóstico a Next.js ou React.
+   - Contém as métricas de _Entities_ puras (ex: `Course.ts`).
+   - Define _Interfaces_ de _Repositories_ estipulando os contratos (Inversão de Dependência) que as camadas externas devem cumprir (`CourseGeneratorRepository.interface.ts`).
+   - Mapeia catálogos de exceções customizadas estendendo a classe base nativa Error para identificação segura de domínios (`DomainError.ts`).
+
+2. **🔴 Application Layer (`src/application`)**
+   - Lida exclusivamente com os Casos de Uso (_UseCases_) da aplicação.
+   - Protegida por **DTOs** validados em tempo de execução via **Zod** (Fail-fast strategy).
+   - Orquestra a requisição usando as abstrações geradas no Domínio, nunca importando Fetch ou Axios diretamente (`GenerateMiniCourseUseCase.ts`).
+
+3. **🔵 Infrastructure Layer (`src/infra`)**
+   - Atua como uma camada de Adapters (Adapters Pattern), concentrando as integrações com serviços externos e o tratamento de dados não estruturados que entram no sistema.
+   - Comunica-se com o webhook do **n8n**, lidando com possíveis inconsistências (como retornos em Markdown misturado com JSON). É responsável por fazer o parsing, sanitização e normalização desses dados brutos antes de injetá-los no Domínio (`N8nCourseGenerator.ts`).
+   - Gerencia a conversão das requisições web nativas do Next.js através de *Controllers* dedicados (`CourseController.ts`), isolando o roteamento da lógica de negócios.
 
 ---
 
-## ✨ Funcionalidades
+## 🧪 Qualidade de Código & Testes
 
-| Funcionalidade | Descrição |
-|---|---|
-| 🤖 **Geração via IA** | Cursos completos criados sob demanda com 5 módulos, lições e quizzes |
-| 🧩 **Quizzes Interativos** | Perguntas de fixação com feedback imediato e explicações |
-| 📊 **Progresso Visual** | Barra de progresso global baseada nos quizzes respondidos |
-| 🎉 **Celebração** | Confetti animado + modal de conclusão ao completar 100% |
-| 📄 **Exportar PDF** | Baixe o curso gerado como documento PDF |
-| ⭐ **Avaliação** | Avalie os cursos gerados (persistido via localStorage) |
-| 🌗 **Temas Dinâmicos** | Modo Light (textura de papel) e Modo Dark (céu estrelado animado) |
-| 📱 **Responsivo** | Layout adaptado para mobile e desktop |
+A manutenibilidade é guiada por uma malha forte de segurança:
+
+- **100% Type-Safe**: Tolerância zero ao tipo `any`. Erros são capitulados com precisão usando `catch (error: unknown)` combinados com Type Guards (`error instanceof Error`).
+- **Test-Driven Design (Vitest)**: Rotinas essenciais de lógica são cobertas por Testes Unitários ultrarrápidos, rodando sob a engine do Vitest e simulando Webhooks usando o pattern de **Fake Repositories** na raiz de testes (`tests/fakes/FakeCourseGeneratorRepository.ts`).
+- **Composição Visual**: Componentes de Layout são ultra granulares, evitando prop drillling severo e utilizando hooks de manipulação customizados e eficientes.
 
 ---
 
-## 🏗️ Arquitetura — Como Next.js e n8n se conectam
+## 🚀 Fluxo de Geração via n8n
 
-O projeto segue uma arquitetura desacoplada onde o **Next.js cuida de todo o front-end e o n8n é responsável pela lógica de IA no backend**, sem necessidade de um servidor próprio.
+A mágica no Back-End ocorre a partir do nosso _infrastructure service_ consumindo a orquestração IA:
 
 ```mermaid
 flowchart LR
-    A["👤 Usuário digita um tema"] --> B["Next.js (Frontend)"]
-    B --> C["API Route /api/mini-course"]
-    C -->|POST com tema| D["n8n Webhook"]
-    D --> E["LLM (GPT-4o / Claude)"]
-    E -->|JSON estruturado| D
-    D -->|Resposta JSON| C
-    C -->|Valida e sanitiza| B
-    B --> F["📚 Curso renderizado"]
+    A["👤 Frontend (Next.js)"] --> B["Controller (App Route)"]
+    B -->|Zod DTO| C["UseCase (Aplication)"]
+    C -->|Interface| D["N8n Serviço (Instanciado pela Infra)"]
+    D <--> E["Webhook n8n / IA LLM (Claude/GPT)"]
+    D -->|Sanitização Segura| C
+    C -->|Course Entity| A
 ```
 
-### 🔵 Next.js (Front-end + Proxy)
-
-- **Interface**: Página única com busca, renderização dos módulos, quizzes e sidebar (objetivos, glossário, dicas).
-- **API Route** (`/api/mini-course`): Atua como **proxy seguro** entre o navegador e o n8n. Recebe o tema, chama o webhook, valida o JSON retornado e sanitiza os dados antes de enviar para o cliente.
-- **Validação robusta**: Extração de JSON tolerante a markdown, normalização de campos ausentes, retry automático com barra de progresso simulada.
-- **State**: Hook `useMiniCourse` gerencia todo o estado do curso (navegação, progresso, completude). Store Zustand (`useCourseStore`) persiste histórico e avaliações.
-
-### 🟠 n8n (Backend de IA)
-
-- **Webhook**: Recebe `POST { "theme": "..." }` e inicia o workflow.
-- **AI Agent**: Conectado a uma LLM (GPT-4o ou Claude 3.5 Sonnet) com prompt pedagógico pré-configurado.
-- **Output Parser**: Força a resposta em JSON Schema estruturado (título, objetivos, 5 módulos com lições e quiz, glossário, dicas).
-- **Resposta**: Retorna `{ "output": { ... } }` com o curso completo para o Next.js processar.
-
-> Os arquivos `n8n_agent_setup.md`, `n8n_output_schema.md` e `prompt-agent.md` neste repositório contêm toda a configuração necessária para replicar o workflow.
+_*(Todas as documentações, schemas e setups utilizados no Workflow do n8n para importar localmente se encontram anexos na pasta `/docs` deste repositório.)*_
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Tech Stack & Ferramental
 
-| Camada | Tecnologia |
+| Camada / Função | Tecnologia |
 |---|---|
-| Framework | [Next.js 15](https://nextjs.org/) (App Router + Turbopack) |
-| Estilização | [Tailwind CSS 4](https://tailwindcss.com/) |
-| Componentes UI | [Shadcn/UI](https://ui.shadcn.com/) + [Radix](https://www.radix-ui.com/) |
-| Animações | [Framer Motion](https://www.framer.com/motion/) |
-| Ícones | [Lucide React](https://lucide.dev/) |
-| Estado Global | [Zustand](https://zustand.docs.pmnd.rs/) (com persistência) |
-| PDF | html2canvas + jsPDF |
-| Backend IA | [n8n](https://n8n.io/) (Webhook + AI Agent + Structured Output) |
-| Deploy | [Vercel](https://vercel.com/) |
+| Framework Web | **Next.js 15** (App Router) |
+| Tipagem e Lógica | **TypeScript** (Strict Mode) |
+| Validação de DTOs | **Zod** |
+| Ambiente de Testes | **Vitest** |
+| Componentes & CSS | **Tailwind CSS 4** + **Shadcn/UI** + **Radix** |
+| Animação (Micro-interactions)| **Framer Motion** + **Canvas Confetti** |
+| Engine Backend IA | **n8n** (Automated Workflow Webhooks) |
 
 ---
 
-## 📂 Estrutura do Projeto
+## 📂 Estrutura do Novo Diretório
 
+A base de código agora espelha a arquitetura limpa:
+
+```text
+/
+├── docs/                # Arquivos JSON do n8n, relatórios e planos de sistema
+├── tests/               
+│   ├── fakes/           # Repositórios Simulados para Teste em Memória
+│   └── unit/            # Suites do Vitest testando as Applicaton UseCases
+├── src/                 # Fonte Aplicação V2 Solid
+│   ├── app/             # Rotas de Layout do Next.js 
+│   ├── application/     # Camada Application (UseCases, DTOs Zod)
+│   ├── components/      # UI Modular (Framer, Shadcn, etc)
+│   ├── domain/          # Entidades Core e Contratos
+│   ├── hooks/           # Encapsulamento de Lifecycle Components do React
+│   ├── infra/           # Serviços (n8n), Adapters e HTTP Controllers
+│   ├── lib/             # Core utils Next / Tailwind
+│   └── store/           # Zustand - Persistence & Cache
 ```
-src/
-├── app/
-│   ├── api/
-│   │   ├── mini-course/route.ts    # Proxy para n8n (valida e sanitiza JSON)
-│   │   └── generate-proxy/route.ts # Proxy alternativo
-│   ├── globals.css                 # Design tokens, temas Light/Dark, animações
-│   ├── layout.tsx                  # Layout raiz (ThemeProvider)
-│   └── page.tsx                    # Página principal (Hero, Search, Curso, Quizzes)
-├── components/
-│   ├── CourseModule/               # Renderização dos módulos e quizzes
-│   ├── SearchInput/                # Campo de busca com submit
-│   ├── PdfGenerator/               # Botão de exportação em PDF
-│   ├── Rating/                     # Modal de avaliação por estrelas
-│   ├── GenerationLoader.tsx        # Loader animado com ícone de cérebro
-│   ├── theme-toggle.tsx            # Toggle Light/Dark
-│   └── ui/                         # Componentes Shadcn (Button, Card, Alert...)
-├── hooks/
-│   └── useMiniCourse.ts            # Hook principal (fetch, retry, progresso)
-├── store/
-│   └── useCourseStore.ts           # Zustand Store (histórico + avaliações)
-└── services/
-    └── api.ts                      # Service layer auxiliar
-```
-
----
-
 
 ## 📄 Licença
-
 Distribuído sob a licença **MIT**. Veja o arquivo [LICENSE](./LICENSE) para mais detalhes.
 
 ---
-
 <p align="center">
-  Feito com 🧡 por <a href="https://www.targetweb.tech" target="_blank">Maicon Brendon</a> · <a href="https://instagram.com/maicon.tsx" target="_blank">@maicon.tsx</a>
+  Feito com foco em Design e Clean Code por <a href="https://www.targetweb.tech" target="_blank">Maicon Brendon</a> · <a href="https://instagram.com/maicon.tsx" target="_blank">@maicon.tsx</a>
 </p>
