@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { GenerateMiniCourseUseCase } from '../../../src/application/use-cases/GenerateMiniCourseUseCase';
 import { FakeCourseGeneratorRepository } from '../../fakes/FakeCourseGeneratorRepository';
 import { InvalidThemeError } from '../../../src/domain/errors/DomainError';
-
+//tests
 describe('GenerateMiniCourseUseCase', () => {
     let repository: FakeCourseGeneratorRepository;
     let useCase: GenerateMiniCourseUseCase;
